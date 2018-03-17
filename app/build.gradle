@@ -48,7 +48,7 @@ greendao {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
 
     // android support libraries
     implementation "com.android.support:appcompat-v7:$rootProject.supportLibraryVersion"
@@ -106,6 +106,7 @@ dependencies {
     androidTestImplementation "com.android.support.test.espresso:espresso-intents:$rootProject.espressoVersion"
     androidTestImplementation "org.mockito:mockito-core:$rootProject.mockitoVersion"
     androidTestAnnotationProcessor "com.google.dagger:dagger-compiler:$rootProject.dagger2Version"
+    api project(':gpuimage')
 }
 
 configurations.all {
