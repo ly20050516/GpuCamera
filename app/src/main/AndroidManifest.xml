@@ -14,22 +14,22 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.mindorks.framework.mvp">
+    package="com.gc">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:name="com.mindorks.framework.mvp.MvpApp"
+        android:name="com.gc.framework.mvp.MvpApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <service android:name=".service.SyncService" />
+        <service android:name="com.gc.framework.mvp.service.SyncService" />
 
         <activity
-            android:name="com.mindorks.framework.mvp.ui.splash.SplashActivity"
+            android:name="com.gc.bussiness.splash.SplashActivity"
             android:launchMode="singleTop"
             android:screenOrientation="portrait"
             android:theme="@style/AppThemeFullScreen">
@@ -40,25 +40,25 @@
         </activity>
 
         <activity
-            android:name="com.mindorks.framework.mvp.ui.login.LoginActivity"
+            android:name="com.gc.bussiness.login.LoginActivity"
             android:launchMode="singleTop"
             android:screenOrientation="portrait" />
 
         <activity
-            android:name="com.mindorks.framework.mvp.ui.main.MainActivity"
+            android:name="com.gc.bussiness.main.MainActivity"
             android:launchMode="singleTop"
             android:screenOrientation="portrait" />
 
         <activity
-            android:name="com.mindorks.framework.mvp.ui.feed.FeedActivity"
+            android:name="com.gc.bussiness.feed.FeedActivity"
             android:launchMode="singleTop"
-            android:parentActivityName=".ui.main.MainActivity"
+            android:parentActivityName="com.gc.bussiness.main.MainActivity"
             android:screenOrientation="portrait">
 
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.main.MainActivity" />
+                android:value="com.gc.bussiness.main.MainActivity" />
         </activity>
 
     </application>
