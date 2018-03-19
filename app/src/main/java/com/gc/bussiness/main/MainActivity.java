@@ -169,8 +169,9 @@ public class MainActivity extends BaseActivity implements MainMvpView {
     @Override
     protected void onResume() {
         super.onResume();
-        if (mDrawer != null)
+        if (mDrawer != null) {
             mDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+        }
     }
 
     @Override
@@ -211,14 +212,16 @@ public class MainActivity extends BaseActivity implements MainMvpView {
 
     @Override
     public void lockDrawer() {
-        if (mDrawer != null)
+        if (mDrawer != null) {
             mDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        }
     }
 
     @Override
     public void unlockDrawer() {
-        if (mDrawer != null)
+        if (mDrawer != null) {
             mDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+        }
     }
 
     @Override

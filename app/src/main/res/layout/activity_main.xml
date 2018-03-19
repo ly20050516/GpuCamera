@@ -55,7 +55,51 @@
             <com.mindorks.placeholderview.SwipePlaceHolderView
                 android:id="@+id/cards_container"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                android:visibility="gone" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <com.gc.framework.mvp.ui.custom.WaveView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <LinearLayout
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <Button
+                        android:layout_marginLeft="-30dp"
+                        android:rotation="30"
+                        android:id="@+id/album_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/ic_album" />
+
+                    <Button
+                        android:layout_marginTop="40dp"
+                        android:rotation="-30"
+                        android:id="@+id/camera_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/ic_camera" />
+
+                    <Button
+                        android:layout_marginTop="40dp"
+                        android:layout_marginLeft="30dp"
+                        android:rotation="30"
+                        android:id="@+id/production_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/ic_production" />
+                </LinearLayout>
+            </FrameLayout>
+
 
         </LinearLayout>
     </android.support.design.widget.CoordinatorLayout>
