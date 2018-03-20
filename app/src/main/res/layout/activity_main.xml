@@ -79,7 +79,7 @@
                         android:id="@+id/album_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/ic_album" />
+                        android:background="@drawable/avd_album" />
 
                     <Button
                         android:layout_marginTop="40dp"
@@ -87,7 +87,7 @@
                         android:id="@+id/camera_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/ic_camera" />
+                        android:background="@drawable/avd_camera" />
 
                     <Button
                         android:layout_marginTop="40dp"
@@ -96,7 +96,7 @@
                         android:id="@+id/production_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/ic_production" />
+                        android:background="@drawable/avd_production" />
                 </LinearLayout>
             </FrameLayout>
 

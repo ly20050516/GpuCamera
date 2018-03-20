@@ -18,6 +18,8 @@ package com.gc.bussiness.main;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Animatable;
+import android.graphics.drawable.AnimatedVectorDrawable;
+import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -35,6 +37,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.ScaleAnimation;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.gc.BuildConfig;
@@ -56,6 +59,8 @@ import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
+
 import com.gc.R;
 
 /**
@@ -82,6 +87,8 @@ public class MainActivity extends BaseActivity implements MainMvpView {
     @BindView(R.id.cards_container)
     SwipePlaceHolderView mCardsContainerView;
 
+    @BindView(R.id.album_button)
+    Button mButtonAlbum;
     private TextView mNameTextView;
 
     private TextView mEmailTextView;
@@ -278,7 +285,18 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         setupCardContainerView();
         mPresenter.onViewInitialized();
     }
+    @OnClick(R.id.album_button)
+    void onClickAlbum() {
+        ((Animatable)mButtonAlbum.getBackground()).start();
+    }
+    @OnClick(R.id.camera_button)
+    void onClickCamera() {
 
+    }
+    @OnClick(R.id.production_button)
+    void onClickProduction() {
+
+    }
     private void setupCardContainerView() {
 
         int screenWidth = ScreenUtils.getScreenWidth(this);
