@@ -2,6 +2,7 @@ package com.gc.bussiness.gcamera;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -23,6 +24,7 @@ import com.gc.bussiness.gcamera.hardware.view.CaptureButton;
 import com.gc.bussiness.gcamera.hardware.view.CaptureLayout;
 import com.gc.bussiness.gcamera.hardware.view.FoucsView;
 import com.gc.framework.mvp.ui.base.BaseActivity;
+import com.gc.framework.mvp.ui.custom.UltimateBar;
 
 import java.io.File;
 import java.io.IOException;
@@ -101,6 +103,9 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
 
     @Override
     protected void setUp() {
+        UltimateBar ultimateBar = new UltimateBar(this);
+        ultimateBar.setColorBarForDrawer(Color.BLACK, 0, Color.BLACK, 0);
+
         mCameraView.setVideoSize(1920, 1080);
         updateScaleModeText();
         mCaptureLayout.setDuration(6 * 1000);
