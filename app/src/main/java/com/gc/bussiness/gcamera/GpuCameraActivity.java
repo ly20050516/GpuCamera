@@ -107,6 +107,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
         ultimateBar.setColorBarForDrawer(Color.BLACK, 0, Color.BLACK, 0);
 
         mCameraView.setVideoSize(1920, 1080);
+        mCameraView.setOnClickListener(mOnClickListener);
         updateScaleModeText();
         mCaptureLayout.setDuration(6 * 1000);
         mCaptureLayout.setButtonFeatures(CaptureButton.BUTTON_STATE_ONLY_RECORDER);
