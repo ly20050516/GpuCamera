@@ -34,6 +34,12 @@ public interface MainMvpPresenter<V extends MainMvpView> extends MvpPresenter<V>
 
     void onDrawerMyFeedClick();
 
+    void onAlbumClick();
+
+    void onCameraClick();
+
+    void onProductionClick();
+
     void onViewInitialized();
 
     void onCardExhausted();

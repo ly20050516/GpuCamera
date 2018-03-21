@@ -19,16 +19,12 @@ import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 
-import com.gc.framework.mvp.data.network.model.OpenSourceResponse;
-import com.gc.bussiness.feed.FeedPagerAdapter;
-import com.gc.framework.mvp.data.network.model.BlogResponse;
-import com.gc.framework.mvp.di.ActivityContext;
-import com.gc.framework.mvp.di.PerActivity;
 import com.gc.bussiness.about.AboutMvpPresenter;
 import com.gc.bussiness.about.AboutMvpView;
 import com.gc.bussiness.about.AboutPresenter;
 import com.gc.bussiness.feed.FeedMvpPresenter;
 import com.gc.bussiness.feed.FeedMvpView;
+import com.gc.bussiness.feed.FeedPagerAdapter;
 import com.gc.bussiness.feed.FeedPresenter;
 import com.gc.bussiness.feed.blogs.BlogAdapter;
 import com.gc.bussiness.feed.blogs.BlogMvpPresenter;
@@ -38,6 +34,9 @@ import com.gc.bussiness.feed.opensource.OpenSourceAdapter;
 import com.gc.bussiness.feed.opensource.OpenSourceMvpPresenter;
 import com.gc.bussiness.feed.opensource.OpenSourceMvpView;
 import com.gc.bussiness.feed.opensource.OpenSourcePresenter;
+import com.gc.bussiness.gcamera.GpuCameraMvpPresenter;
+import com.gc.bussiness.gcamera.GpuCameraMvpView;
+import com.gc.bussiness.gcamera.GpuCameraPresenter;
 import com.gc.bussiness.login.LoginMvpPresenter;
 import com.gc.bussiness.login.LoginMvpView;
 import com.gc.bussiness.login.LoginPresenter;
@@ -50,10 +49,16 @@ import com.gc.bussiness.main.rating.RatingDialogPresenter;
 import com.gc.bussiness.splash.SplashMvpPresenter;
 import com.gc.bussiness.splash.SplashMvpView;
 import com.gc.bussiness.splash.SplashPresenter;
+import com.gc.framework.mvp.data.network.model.BlogResponse;
+import com.gc.framework.mvp.data.network.model.OpenSourceResponse;
+import com.gc.framework.mvp.di.ActivityContext;
+import com.gc.framework.mvp.di.PerActivity;
 import com.gc.framework.mvp.utils.rx.AppSchedulerProvider;
 import com.gc.framework.mvp.utils.rx.SchedulerProvider;
 
 import java.util.ArrayList;
+
+import javax.inject.Inject;
 
 import dagger.Module;
 import dagger.Provides;
@@ -121,6 +126,13 @@ public class ActivityModule {
     }
 
     @Provides
+    @PerActivity
+    GpuCameraMvpPresenter<GpuCameraMvpView> provideGpuCameraPresenter(
+            GpuCameraPresenter<GpuCameraMvpView> presenter) {
+        return presenter;
+    }
+
+    @Provides
     RatingDialogMvpPresenter<RatingDialogMvpView> provideRateUsPresenter(
             RatingDialogPresenter<RatingDialogMvpView> presenter) {
         return presenter;
@@ -131,6 +143,8 @@ public class ActivityModule {
             FeedPresenter<FeedMvpView> presenter) {
         return presenter;
     }
+
+
 
     @Provides
     OpenSourceMvpPresenter<OpenSourceMvpView> provideOpenSourcePresenter(

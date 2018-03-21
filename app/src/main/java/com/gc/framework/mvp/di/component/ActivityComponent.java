@@ -15,6 +15,7 @@
 
 package com.gc.framework.mvp.di.component;
 
+import com.gc.bussiness.gcamera.GpuCameraActivity;
 import com.gc.framework.mvp.di.PerActivity;
 import com.gc.framework.mvp.di.module.ActivityModule;
 import com.gc.bussiness.about.AboutFragment;
@@ -43,6 +44,8 @@ public interface ActivityComponent {
     void inject(SplashActivity activity);
 
     void inject(FeedActivity activity);
+
+    void inject(GpuCameraActivity activity);
 
     void inject(AboutFragment fragment);
 

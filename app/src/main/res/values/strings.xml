@@ -85,4 +85,7 @@
     <string name="please_retry">Please Retry</string>
     <string name="retry">Retry</string>
 
+    <string name="imageview_content_description"></string>
+
+
 </resources>

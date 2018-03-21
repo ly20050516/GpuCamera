@@ -163,4 +163,19 @@ public class MainPresenter<V extends MainMvpView> extends BasePresenter<V>
         getMvpView().closeNavigationDrawer();
         getMvpView().openMyFeedActivity();
     }
+
+    @Override
+    public void onAlbumClick() {
+
+    }
+
+    @Override
+    public void onCameraClick() {
+        getMvpView().openGpuCameraActivity();
+    }
+
+    @Override
+    public void onProductionClick() {
+
+    }
 }

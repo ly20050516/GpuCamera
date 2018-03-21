@@ -18,8 +18,6 @@ package com.gc.bussiness.main;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Animatable;
-import android.graphics.drawable.AnimatedVectorDrawable;
-import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -41,13 +39,15 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.gc.BuildConfig;
+import com.gc.R;
 import com.gc.bussiness.about.AboutFragment;
-import com.gc.framework.mvp.ui.base.BaseActivity;
-import com.gc.framework.mvp.ui.custom.RoundedImageView;
 import com.gc.bussiness.feed.FeedActivity;
+import com.gc.bussiness.gcamera.GpuCameraActivity;
+import com.gc.bussiness.login.LoginActivity;
 import com.gc.bussiness.main.rating.RateUsDialog;
 import com.gc.framework.mvp.data.db.model.Question;
-import com.gc.bussiness.login.LoginActivity;
+import com.gc.framework.mvp.ui.base.BaseActivity;
+import com.gc.framework.mvp.ui.custom.RoundedImageView;
 import com.gc.framework.mvp.utils.ScreenUtils;
 import com.mindorks.placeholderview.SwipeDecor;
 import com.mindorks.placeholderview.SwipePlaceHolderView;
@@ -60,8 +60,6 @@ import javax.inject.Inject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-
-import com.gc.R;
 
 /**
  * Created by janisharali on 27/01/17.
@@ -285,18 +283,23 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         setupCardContainerView();
         mPresenter.onViewInitialized();
     }
+
     @OnClick(R.id.album_button)
     void onClickAlbum() {
-        ((Animatable)mButtonAlbum.getBackground()).start();
+        ((Animatable) mButtonAlbum.getBackground()).start();
+        mPresenter.onAlbumClick();
     }
+
     @OnClick(R.id.camera_button)
     void onClickCamera() {
-
+        mPresenter.onCameraClick();
     }
+
     @OnClick(R.id.production_button)
     void onClickProduction() {
-
+        mPresenter.onProductionClick();
     }
+
     private void setupCardContainerView() {
 
         int screenWidth = ScreenUtils.getScreenWidth(this);
@@ -374,6 +377,11 @@ public class MainActivity extends BaseActivity implements MainMvpView {
     @Override
     public void openMyFeedActivity() {
         startActivity(FeedActivity.getStartIntent(this));
+    }
+
+    @Override
+    public void openGpuCameraActivity() {
+        startActivity(GpuCameraActivity.getStartIntent(this));
     }
 
     @Override
