@@ -110,7 +110,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
         mCameraView.setOnClickListener(mOnClickListener);
         updateScaleModeText();
         mCaptureLayout.setDuration(6 * 1000);
-        mCaptureLayout.setButtonFeatures(CaptureButton.BUTTON_STATE_ONLY_RECORDER);
+        mCaptureLayout.setButtonFeatures(CaptureButton.BUTTON_STATE_BOTH);
         initListener();
     }
 
@@ -119,7 +119,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
         mSwitchCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCameraView.switchCamra();
+                mCameraView.switchCamera();
             }
         });
 
@@ -286,7 +286,10 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
     private void startRecording() {
         if (DEBUG) Log.v(TAG, "startRecording:");
         try {
-            mMuxer = new MediaMuxerWrapper(".mp4");	// if you record audio only, ".m4a" is also OK.
+            /**
+             *  if you record audio only, ".m4a" is also OK
+             */
+            mMuxer = new MediaMuxerWrapper(".mp4");
             mSaveResultPath = mMuxer.getOutputPath();
             if (true) {
                 // for video capturing

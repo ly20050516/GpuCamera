@@ -30,6 +30,7 @@ import android.opengl.EGLContext;
 import android.util.Log;
 import android.view.Surface;
 
+import com.gc.BuildConfig;
 import com.gc.bussiness.gcamera.hardware.glutils.RenderHandler;
 
 import java.io.IOException;
@@ -38,11 +39,13 @@ import java.io.IOException;
 
 
 public class MediaVideoEncoder extends MediaEncoder {
-	private static final boolean DEBUG = false;	// TODO set false on release
+	private static final boolean DEBUG = BuildConfig.DEBUG;
 	private static final String TAG = "MediaVideoEncoder";
 
 	private static final String MIME_TYPE = "video/avc";
-	// parameters for recording
+	/** parameters for recording
+	 *
+	 */
     private static final int FRAME_RATE = 25;
     private static final float BPP = 0.25f;
 
