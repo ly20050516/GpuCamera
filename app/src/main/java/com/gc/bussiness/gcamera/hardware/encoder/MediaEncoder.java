@@ -26,12 +26,14 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.util.Log;
 
+import com.gc.bussiness.gcamera.hardware.CameraConsts;
+
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 
 public abstract class MediaEncoder implements Runnable {
-	private static final boolean DEBUG = false;	// TODO set false on release
+	private static final boolean DEBUG = CameraConsts.DEBUG;
 	private static final String TAG = "MediaEncoder";
 
 	protected static final int TIMEOUT_USEC = 10000;	// 10[msec]

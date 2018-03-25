@@ -35,9 +35,14 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import com.gc.bussiness.gcamera.hardware.CameraConsts;
+
+/**
+ *  API >= 17
+ */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class EGLBase {	// API >= 17
-	private static final boolean DEBUG = false;	// TODO set false on release
+public class EGLBase {
+	private static final boolean DEBUG = CameraConsts.DEBUG;
 	private static final String TAG = "EGLBase";
 
     private static final int EGL_RECORDABLE_ANDROID = 0x3142;

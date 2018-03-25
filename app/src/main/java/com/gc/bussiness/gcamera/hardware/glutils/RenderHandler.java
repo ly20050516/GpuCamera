@@ -31,11 +31,13 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 
+import com.gc.bussiness.gcamera.hardware.CameraConsts;
+
 /**
  * Helper class to draw texture to whole view on private thread
  */
 public final class RenderHandler implements Runnable {
-	private static final boolean DEBUG = false;	// TODO set false on release
+	private static final boolean DEBUG = CameraConsts.DEBUG;
 	private static final String TAG = "RenderHandler";
 
 	private final Object mSync = new Object();

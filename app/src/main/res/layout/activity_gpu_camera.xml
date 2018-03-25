@@ -92,7 +92,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"/>
 
-    <com.gc.bussiness.gcamera.hardware.view.FoucsView
+    <com.gc.bussiness.gcamera.hardware.view.FocusView
         android:id="@+id/fouce_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

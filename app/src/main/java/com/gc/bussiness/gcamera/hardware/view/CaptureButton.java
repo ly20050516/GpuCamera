@@ -16,54 +16,82 @@ import android.view.View;
 import com.gc.bussiness.gcamera.hardware.listener.CaptureListener;
 
 
+/**
+ * @author ly
+ */
 public class CaptureButton extends View {
 
-    public static final int BUTTON_STATE_ONLY_CAPTURE = 0x101;      //只能拍照
-    public static final int BUTTON_STATE_ONLY_RECORDER = 0x102;     //只能录像
-    public static final int BUTTON_STATE_BOTH = 0x103;              //两者都可以
+    /** 只能拍照 */
+    public static final int BUTTON_STATE_ONLY_CAPTURE = 0x101;
+    /** 只能录像 */
+    public static final int BUTTON_STATE_ONLY_RECORDER = 0x102;
+    /** 两者都可以 */
+    public static final int BUTTON_STATE_BOTH = 0x103;
+    /** 当前按钮状态 */
+    private int state;
+    /** 按钮可执行的功能状态（拍照,录制,两者）*/
+    private int button_state;
+    /** 空闲状态 */
+    public static final int STATE_IDLE = 0x001;
+    /** 按下状态 */
+    public static final int STATE_PRESS = 0x002;
+    /** 长按状态 */
+    public static final int STATE_LONG_PRESS = 0x003;
+    /** 录制状态 */
+    public static final int STATE_RECORDERING = 0x004;
+    /** 禁止状态 */
+    public static final int STATE_BAN = 0x005;
 
-    private int state;              //当前按钮状态
-    private int button_state;       //按钮可执行的功能状态（拍照,录制,两者）
+    /** 进度条颜色 */
+    private int progress_color = 0xEE16AE16;
+    /** 外圆背景色 */
+    private int outside_color = 0xEEDCDCDC;
+    /** 内圆背景色 */
+    private int inside_color = 0xFFFFFFFF;
 
-    public static final int STATE_IDLE = 0x001;        //空闲状态
-    public static final int STATE_PRESS = 0x002;       //按下状态
-    public static final int STATE_LONG_PRESS = 0x003;  //长按状态
-    public static final int STATE_RECORDERING = 0x004; //录制状态
-    public static final int STATE_BAN = 0x005;         //禁止状态
-
-    private int progress_color = 0xEE16AE16;            //进度条颜色
-    private int outside_color = 0xEEDCDCDC;             //外圆背景色
-    private int inside_color = 0xFFFFFFFF;              //内圆背景色
-
-
-    private float event_Y;  //Touch_Event_Down时候记录的Y值
+    /** Touch_Event_Down时候记录的Y值 */
+    private float event_Y;
 
 
     private Paint mPaint;
 
-    private float strokeWidth;          //进度条宽度
-    private int outside_add_size;       //长按外圆半径变大的Size
-    private int inside_reduce_size;     //长安内圆缩小的Size
+    /** 进度条宽度 */
+    private float strokeWidth;
+    /** 长按外圆半径变大的Size */
+    private int outside_add_size;
+    /** 长安内圆缩小的Size */
+    private int inside_reduce_size;
 
-    //中心坐标
+    /** 中心坐标 */
     private float center_X;
     private float center_Y;
 
-    private float button_radius;            //按钮半径
-    private float button_outside_radius;    //外圆半径
-    private float button_inside_radius;     //内圆半径
-    private int button_size;                //按钮大小
+    /** 按钮半径 */
+    private float button_radius;
+    /** 外圆半径 */
+    private float button_outside_radius;
+    /** 内圆半径 */
+    private float button_inside_radius;
+    /** 按钮大小 */
+    private int button_size;
 
-    private float progress;         //录制视频的进度
-    private int duration;           //录制视频最大时间长度
-    private int min_duration;       //最短录制时间限制
-    private int recorded_time;      //记录当前录制的时间
+    /** 录制视频的进度 */
+    private float progress;
+    /** 录制视频最大时间长度 */
+    private int duration;
+    /** 最短录制时间限制 */
+    private int min_duration;
+    /** 记录当前录制的时间 */
+    private int recorded_time;
 
     private RectF rectF;
 
-    private LongPressRunnable longPressRunnable;    //长按后处理的逻辑Runnable
-    private CaptureListener captureLisenter;        //按钮回调接口
-    private RecordCountDownTimer timer;             //计时器
+    /** 长按后处理的逻辑Runnable */
+    private LongPressRunnable longPressRunnable;
+    /** 按钮回调接口 **/
+    private CaptureListener captureLisenter;
+    /** 计时器 */
+    private RecordCountDownTimer timer;
 
     public CaptureButton(Context context) {
         super(context);

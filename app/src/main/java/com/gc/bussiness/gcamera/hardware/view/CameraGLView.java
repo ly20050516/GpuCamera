@@ -40,6 +40,7 @@ import android.view.SurfaceHolder;
 import android.view.WindowManager;
 
 import com.gc.BuildConfig;
+import com.gc.bussiness.gcamera.hardware.CameraConsts;
 import com.gc.bussiness.gcamera.hardware.encoder.MediaVideoEncoder;
 import com.gc.bussiness.gcamera.hardware.glutils.GLDrawer2D;
 
@@ -55,10 +56,11 @@ import javax.microedition.khronos.opengles.GL10;
 
 /**
  * Sub class of GLSurfaceView to display camera preview and write video frame to capturing surface
+ * @author ly
  */
 public final class CameraGLView extends GLSurfaceView {
 
-    private static final boolean DEBUG = BuildConfig.DEBUG;
+    private static final boolean DEBUG = CameraConsts.DEBUG;
     private static final String TAG = "CameraGLView";
 
     private static final int SCALE_STRETCH_FIT = 0;
@@ -90,9 +92,9 @@ public final class CameraGLView extends GLSurfaceView {
         // GLES 2.0, API >= 8
         setEGLContextClientVersion(2);
         setRenderer(mRenderer);
-/*		// the frequency of refreshing of camera preview is at most 15 fps
+		// the frequency of refreshing of camera preview is at most 15 fps
         // and RENDERMODE_WHEN_DIRTY is better to reduce power consumption
-		setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY); */
+		setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
 
     @Override
@@ -223,7 +225,7 @@ public final class CameraGLView extends GLSurfaceView {
             thread.start();
             mCameraHandler = thread.getHandler();
         }
-        mCameraHandler.startPreview(1920, 1080/*width, height*/);
+        mCameraHandler.startPreview(1920, 1080);
     }
 
     /**
@@ -234,7 +236,8 @@ public final class CameraGLView extends GLSurfaceView {
             SurfaceTexture.OnFrameAvailableListener {    // API >= 11
 
         private final WeakReference<CameraGLView> mWeakParent;
-        private SurfaceTexture mSTexture;    // API >= 11
+        /** API >= 11 */
+        private SurfaceTexture mSTexture;
         private int hTex;
         private GLDrawer2D mDrawer;
         private final float[] mStMatrix = new float[16];
@@ -362,7 +365,7 @@ public final class CameraGLView extends GLSurfaceView {
         /**
          * ~10fps,60 express camera preview fps, 10 express we expected.
          */
-        private final int VIDEO_FPS = 60 / 10;
+        private final int VIDEO_FPS = 60;
 
         /**
          * drawing to GLSurface
@@ -393,7 +396,6 @@ public final class CameraGLView extends GLSurfaceView {
                 synchronized (this) {
                     if (mVideoEncoder != null) {
                         // notify to capturing thread that the camera frame is available.
-//						mVideoEncoder.frameAvailableSoon(mStMatrix);
                         mVideoEncoder.frameAvailableSoon(mStMatrix, mMvpMatrix);
                     }
                 }
@@ -403,9 +405,10 @@ public final class CameraGLView extends GLSurfaceView {
         @Override
         public void onFrameAvailable(final SurfaceTexture st) {
             requesrUpdateTex = true;
-//			final CameraGLView parent = mWeakParent.get();
-//			if (parent != null)
-//				parent.requestRender();
+			final CameraGLView parent = mWeakParent.get();
+			if (parent != null) {
+                parent.requestRender();
+            }
         }
     }
 
@@ -558,7 +561,7 @@ public final class CameraGLView extends GLSurfaceView {
          * @param height
          */
         private final void startPreview(final int width, final int height) {
-            if (DEBUG) Log.i(TAG, "startPreview:");
+            if (DEBUG) {Log.i(TAG, "startPreview:");}
             final CameraGLView parent = mWeakParent.get();
             if ((parent != null) && (mCamera == null)) {
                 // This is a sample project so just use 0 as camera ID.
@@ -578,12 +581,12 @@ public final class CameraGLView extends GLSurfaceView {
                     }
                     // let's try fastest frame rate. You will get near 60fps, but your device become hot.
                     final List<int[]> supportedFpsRange = params.getSupportedPreviewFpsRange();
-//					final int n = supportedFpsRange != null ? supportedFpsRange.size() : 0;
-//					int[] range;
-//					for (int i = 0; i < n; i++) {
-//						range = supportedFpsRange.get(i);
-//						Log.i(TAG, String.format("supportedFpsRange(%d)=(%d,%d)", i, range[0], range[1]));
-//					}
+					final int n = supportedFpsRange != null ? supportedFpsRange.size() : 0;
+					int[] range;
+					for (int i = 0; i < n; i++) {
+						range = supportedFpsRange.get(i);
+						Log.i(TAG, String.format("supportedFpsRange(%d)=(%d,%d)", i, range[0], range[1]));
+					}
                     final int[] max_fps = supportedFpsRange.get(supportedFpsRange.size() - 1);
                     Log.i(TAG, String.format("fps:%d-%d", max_fps[0], max_fps[1]));
                     params.setPreviewFpsRange(max_fps[0], max_fps[1]);
@@ -667,7 +670,7 @@ public final class CameraGLView extends GLSurfaceView {
                 mCamera = null;
             }
             final CameraGLView parent = mWeakParent.get();
-            if (parent == null) return;
+            if (parent == null) {return;}
             parent.mCameraHandler = null;
         }
 
@@ -677,9 +680,9 @@ public final class CameraGLView extends GLSurfaceView {
          * @param params
          */
         private final void setRotation(final Camera.Parameters params) {
-            if (DEBUG) Log.i(TAG, "setRotation:");
+            if (DEBUG) {Log.i(TAG, "setRotation:");}
             final CameraGLView parent = mWeakParent.get();
-            if (parent == null) return;
+            if (parent == null) {return;}
 
             final Display display = ((WindowManager) parent.getContext()
                     .getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
@@ -704,17 +707,20 @@ public final class CameraGLView extends GLSurfaceView {
                     new Camera.CameraInfo();
             Camera.getCameraInfo(parent.mCameraId, info);
             mIsFrontFace = (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT);
-            if (mIsFrontFace) {    // front camera
+            // front camera
+            if (mIsFrontFace) {
                 degrees = (info.orientation + degrees) % 360;
-                degrees = (360 - degrees) % 360;  // reverse
-            } else {  // back camera
+                // reverse
+                degrees = (360 - degrees) % 360;
+            } else {
+                // back camera
                 degrees = (info.orientation - degrees + 360) % 360;
             }
             // apply rotation setting
             mCamera.setDisplayOrientation(degrees);
             parent.mRotation = degrees;
             // XXX This method fails to call and camera stops working on some devices.
-//			params.setRotation(degrees);
+			params.setRotation(degrees);
         }
 
     }

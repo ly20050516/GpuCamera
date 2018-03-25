@@ -7,6 +7,9 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.view.View;
 
+/**
+ * @author ly
+ */
 public class ReturnButton extends View {
 
     private int size;

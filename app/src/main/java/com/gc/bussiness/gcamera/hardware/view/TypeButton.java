@@ -9,6 +9,9 @@ import android.graphics.RectF;
 import android.view.View;
 
 
+/**
+ * @author ly
+ */
 public class TypeButton extends View {
     public static final int TYPE_CANCEL = 0x001;
     public static final int TYPE_CONFIRM = 0x002;

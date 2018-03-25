@@ -21,6 +21,9 @@ import com.gc.bussiness.gcamera.hardware.listener.ReturnListener;
 import com.gc.bussiness.gcamera.hardware.listener.TypeListener;
 
 
+/**
+ * @author ly
+ */
 public class CaptureLayout extends FrameLayout {
 
     /**

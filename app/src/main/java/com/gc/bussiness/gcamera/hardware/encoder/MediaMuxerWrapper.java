@@ -29,6 +29,8 @@ import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.gc.bussiness.gcamera.hardware.CameraConsts;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -37,7 +39,7 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 
 public class MediaMuxerWrapper {
-	private static final boolean DEBUG = false;	// TODO set false on release
+	private static final boolean DEBUG = CameraConsts.DEBUG;
 	private static final String TAG = "MediaMuxerWrapper";
 
 	private static final String DIR_NAME = "AVRecSample";
@@ -105,15 +107,18 @@ public class MediaMuxerWrapper {
 	 */
 	/*package*/ void addEncoder(final MediaEncoder encoder) {
 		if (encoder instanceof MediaVideoEncoder) {
-			if (mVideoEncoder != null)
+			if (mVideoEncoder != null) {
 				throw new IllegalArgumentException("Video encoder already added.");
+			}
 			mVideoEncoder = encoder;
 		} else if (encoder instanceof MediaAudioEncoder) {
-			if (mAudioEncoder != null)
+			if (mAudioEncoder != null) {
 				throw new IllegalArgumentException("Video encoder already added.");
+			}
 			mAudioEncoder = encoder;
-		} else
+		} else {
 			throw new IllegalArgumentException("unsupported encoder");
+		}
 		mEncoderCount = (mVideoEncoder != null ? 1 : 0) + (mAudioEncoder != null ? 1 : 0);
 	}
 

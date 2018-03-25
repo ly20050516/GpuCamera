@@ -22,7 +22,7 @@ import com.gc.bussiness.gcamera.hardware.listener.TypeListener;
 import com.gc.bussiness.gcamera.hardware.view.CameraGLView;
 import com.gc.bussiness.gcamera.hardware.view.CaptureButton;
 import com.gc.bussiness.gcamera.hardware.view.CaptureLayout;
-import com.gc.bussiness.gcamera.hardware.view.FoucsView;
+import com.gc.bussiness.gcamera.hardware.view.FocusView;
 import com.gc.framework.mvp.ui.base.BaseActivity;
 import com.gc.framework.mvp.ui.custom.UltimateBar;
 
@@ -67,7 +67,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
     @BindView(R.id.capture_layout)
     CaptureLayout mCaptureLayout;
     @BindView(R.id.fouce_view)
-    FoucsView mFoucsView;
+    FocusView mFocusView;
 
     /**
      * muxer for audio/video recording
