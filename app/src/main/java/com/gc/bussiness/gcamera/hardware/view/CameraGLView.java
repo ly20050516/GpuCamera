@@ -39,7 +39,6 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.WindowManager;
 
-import com.gc.BuildConfig;
 import com.gc.bussiness.gcamera.hardware.CameraConsts;
 import com.gc.bussiness.gcamera.hardware.encoder.MediaVideoEncoder;
 import com.gc.bussiness.gcamera.hardware.glutils.GLDrawer2D;
@@ -184,13 +183,13 @@ public final class CameraGLView extends GLSurfaceView {
     }
 
     public SurfaceTexture getSurfaceTexture() {
-        if (DEBUG) Log.i(TAG, "getSurfaceTexture:");
+        if (DEBUG) {Log.i(TAG, "getSurfaceTexture:");}
         return mRenderer != null ? mRenderer.mSTexture : null;
     }
 
     @Override
     public void surfaceDestroyed(final SurfaceHolder holder) {
-        if (DEBUG) Log.i(TAG, "surfaceDestroyed:");
+        if (DEBUG) {Log.i(TAG, "surfaceDestroyed:");}
         if (mCameraHandler != null) {
             // wait for finish previewing here
             // otherwise camera try to display on un-exist Surface and some error will occure
@@ -254,10 +253,11 @@ public final class CameraGLView extends GLSurfaceView {
         public void onSurfaceCreated(final GL10 unused, final EGLConfig config) {
             if (DEBUG) Log.i(TAG, "onSurfaceCreated:");
             // This renderer required OES_EGL_image_external extension
-            final String extensions = GLES20.glGetString(GLES20.GL_EXTENSIONS);    // API >= 8
-//			if (DEBUG) Log.i(TAG, "onSurfaceCreated:Gl extensions: " + extensions);
-            if (!extensions.contains("OES_EGL_image_external"))
+            // API >= 8
+            final String extensions = GLES20.glGetString(GLES20.GL_EXTENSIONS);
+            if (!extensions.contains("OES_EGL_image_external")) {
                 throw new RuntimeException("This system does not support OES_EGL_image_external.");
+            }
             // create textur ID
             hTex = GLDrawer2D.initTex();
             // create SurfaceTexture with texture ID.
@@ -278,7 +278,7 @@ public final class CameraGLView extends GLSurfaceView {
         public void onSurfaceChanged(final GL10 unused, final int width, final int height) {
             if (DEBUG) Log.i(TAG, String.format("onSurfaceChanged:(%d,%d)", width, height));
             // if at least with or height is zero, initialization of this view is still progress.
-            if ((width == 0) || (height == 0)) return;
+            if ((width == 0) || (height == 0)) {return;}
             updateViewport();
             final CameraGLView parent = mWeakParent.get();
             if (parent != null) {
@@ -444,9 +444,9 @@ public final class CameraGLView extends GLSurfaceView {
                 sendEmptyMessage(MSG_PREVIEW_STOP);
                 if (needWait && mThread.mIsRunning) {
                     try {
-                        if (DEBUG) Log.i(TAG, "wait for terminating of camera thread");
+                        if (DEBUG) {Log.i(TAG, "wait for terminating of camera thread");}
                         wait();
-                        if (DEBUG) Log.i(TAG, "wait for terminating of camera thread,success!");
+                        if (DEBUG) {Log.i(TAG, "wait for terminating of camera thread,success!");}
 
                     } catch (final InterruptedException e) {
                         e.printStackTrace();

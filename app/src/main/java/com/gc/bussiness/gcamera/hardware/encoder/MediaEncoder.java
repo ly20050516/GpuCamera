@@ -113,7 +113,7 @@ public abstract class MediaEncoder implements Runnable {
      * @return return true if encoder is ready to encod.
      */
     public boolean frameAvailableSoon() {
-//    	if (DEBUG) Log.i(TAG, "frameAvailableSoon");
+    	if (DEBUG) {Log.i(TAG, "frameAvailableSoon");}
         synchronized (mSync) {
             if (!mIsCapturing || mRequestStop) {
                 return false;

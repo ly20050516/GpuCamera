@@ -3,6 +3,9 @@ package com.gc.bussiness.gcamera;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.hardware.Camera;
+import android.net.Uri;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -33,6 +36,10 @@ import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import jp.co.cyberagent.android.gpuimage.GPUImage;
+import jp.co.cyberagent.android.gpuimage.GPUImageColorBalanceFilter;
+import jp.co.cyberagent.android.gpuimage.GPUImageColorBlendFilter;
+import jp.co.cyberagent.android.gpuimage.GPUImageGlassSphereFilter;
 
 import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
@@ -68,11 +75,16 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
     CaptureLayout mCaptureLayout;
     @BindView(R.id.fouce_view)
     FocusView mFocusView;
-
+    @BindView(R.id.gpu_gl_surface_view)
+    GLSurfaceView mGpuGlSurfaceView;
     /**
      * muxer for audio/video recording
      */
     private MediaMuxerWrapper mMuxer;
+    @Inject
+    GPUImage mGpuImage;
+    @Inject
+    Camera mCamera;
 
     String mSaveResultPath;
 
@@ -112,6 +124,22 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
         mCaptureLayout.setDuration(6 * 1000);
         mCaptureLayout.setButtonFeatures(CaptureButton.BUTTON_STATE_BOTH);
         initListener();
+
+        mGpuImage.setGLSurfaceView(mGpuGlSurfaceView);
+        setUpResultFile();
+        Uri imageUri = Uri.parse(mSaveResultPath);
+        mGpuImage.setImage(imageUri);
+        mGpuImage.setFilter(new GPUImageColorBalanceFilter());
+        mGpuImage.setUpCamera(mCamera,90,false,false);
+    }
+
+    private void setUpResultFile() {
+        File saveDir = getExternalFilesDir("GpuImage");
+        if(!saveDir.exists()) {
+            saveDir.mkdir();
+        }
+        File resultFile = new File(saveDir,"gpu-image.jpg");
+        mSaveResultPath = resultFile.getAbsolutePath();
     }
 
     private void initListener() {

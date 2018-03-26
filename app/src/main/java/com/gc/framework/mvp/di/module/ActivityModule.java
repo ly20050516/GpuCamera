@@ -16,6 +16,7 @@
 package com.gc.framework.mvp.di.module;
 
 import android.content.Context;
+import android.hardware.Camera;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 
@@ -63,6 +64,7 @@ import javax.inject.Inject;
 import dagger.Module;
 import dagger.Provides;
 import io.reactivex.disposables.CompositeDisposable;
+import jp.co.cyberagent.android.gpuimage.GPUImage;
 
 /**
  * Created by janisharali on 27/01/17.
@@ -130,6 +132,16 @@ public class ActivityModule {
     GpuCameraMvpPresenter<GpuCameraMvpView> provideGpuCameraPresenter(
             GpuCameraPresenter<GpuCameraMvpView> presenter) {
         return presenter;
+    }
+
+    @Provides
+    GPUImage providerGpuImage(@ActivityContext  Context context) {
+        return new GPUImage(context);
+    }
+    @Provides
+    Camera providerCamera(@ActivityContext Context context) {
+        Camera camera = Camera.open();
+        return camera;
     }
 
     @Provides

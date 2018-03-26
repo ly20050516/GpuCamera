@@ -35,11 +35,14 @@ import android.graphics.Bitmap;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 
+/**
+ * @author ly
+ */
 public class PixelBuffer {
     final static String TAG = "PixelBuffer";
     final static boolean LIST_CONFIGS = false;
-
-    GLSurfaceView.Renderer mRenderer; // borrow this interface
+    /** borrow this interface */
+    GLSurfaceView.Renderer mRenderer;
     int mWidth, mHeight;
     Bitmap mBitmap;
 
@@ -68,8 +71,9 @@ public class PixelBuffer {
         mEGL = (EGL10) EGLContext.getEGL();
         mEGLDisplay = mEGL.eglGetDisplay(EGL_DEFAULT_DISPLAY);
         mEGL.eglInitialize(mEGLDisplay, version);
-        mEGLConfig = chooseConfig(); // Choosing a config is a little more
-                                     // complicated
+        // Choosing a config is a little more
+        // complicated
+        mEGLConfig = chooseConfig();
 
         // mEGLContext = mEGL.eglCreateContext(mEGLDisplay, mEGLConfig,
         // EGL_NO_CONTEXT, null);
@@ -158,8 +162,8 @@ public class PixelBuffer {
         if (LIST_CONFIGS) {
             listConfig();
         }
-
-        return mEGLConfigs[0]; // Best match is probably the first configuration
+        // Best match is probably the first configuration
+        return mEGLConfigs[0];
     }
 
     private void listConfig() {
