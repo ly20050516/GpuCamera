@@ -1,4 +1,4 @@
-package com.gc.bussiness.gcamera.hardware.encoder;
+package jp.co.cyberagent.android.encoder;
 /*
  * AudioVideoRecordingSample
  * Sample project to cature audio and video from internal mic/camera and save as MPEG4 file.
@@ -30,16 +30,15 @@ import android.opengl.EGLContext;
 import android.util.Log;
 import android.view.Surface;
 
-import com.gc.bussiness.gcamera.hardware.CameraConsts;
-import com.gc.bussiness.gcamera.hardware.glutils.RenderHandler;
+import jp.co.cyberagent.android.glutils.RenderHandler;
 
 import java.io.IOException;
 
-
+import jp.co.cyberagent.android.gpuimage.util.GpuImageConsts;
 
 
 public class MediaVideoEncoder extends MediaEncoder {
-	private static final boolean DEBUG = CameraConsts.DEBUG;
+	private static final boolean DEBUG = GpuImageConsts.DEBUG;
 	private static final String TAG = "MediaVideoEncoder";
 
 	private static final String MIME_TYPE = "video/avc";

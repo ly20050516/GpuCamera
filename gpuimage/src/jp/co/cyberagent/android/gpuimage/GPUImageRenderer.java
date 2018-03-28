@@ -25,6 +25,7 @@ import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView.Renderer;
+import android.util.Log;
 
 import jp.co.cyberagent.android.gpuimage.util.TextureRotationUtil;
 
@@ -66,6 +67,8 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
     private int mImageHeight;
     private int mAddedPadding;
 
+    private boolean mHasSurface;
+
     private final Queue<Runnable> mRunOnDraw;
     private final Queue<Runnable> mRunOnDrawEnd;
     private Rotation mRotation;
@@ -95,8 +98,10 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
 
     @Override
     public void onSurfaceCreated(final GL10 unused, final EGLConfig config) {
+        mHasSurface = true;
         GLES20.glClearColor(mBackgroundRed, mBackgroundGreen, mBackgroundBlue, 1);
         GLES20.glDisable(GLES20.GL_DEPTH_TEST);
+
         mFilter.init();
     }
 
@@ -111,6 +116,19 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
         synchronized (mSurfaceChangedWaiter) {
             mSurfaceChangedWaiter.notifyAll();
         }
+    }
+
+    /**
+     * when GLSurface context is soon destroyed
+     */
+    public void onSurfaceDestroyed() {
+
+        mHasSurface = false;
+        if (mSurfaceTexture != null) {
+            mSurfaceTexture.release();
+            mSurfaceTexture = null;
+        }
+
     }
 
     @Override
@@ -186,6 +204,10 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
                 }
             }
         });
+    }
+
+    public SurfaceTexture getSurfaceTexture() {
+        return mSurfaceTexture;
     }
 
     public void setFilter(final GPUImageFilter filter) {
@@ -342,7 +364,9 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
     public boolean isFlippedVertically() {
         return mFlipVertical;
     }
-
+    public boolean isHasSurface() {
+        return mHasSurface;
+    }
     protected void runOnDraw(final Runnable runnable) {
         synchronized (mRunOnDraw) {
             mRunOnDraw.add(runnable);

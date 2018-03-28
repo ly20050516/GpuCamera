@@ -1,4 +1,4 @@
-package com.gc.bussiness.gcamera.hardware.glutils;
+package jp.co.cyberagent.android.glutils;
 /*
  * AudioVideoRecordingSample
  * Sample project to cature audio and video from internal mic/camera and save as MPEG4 file.
@@ -27,17 +27,18 @@ import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.util.Log;
 
-import com.gc.bussiness.gcamera.hardware.CameraConsts;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
+import jp.co.cyberagent.android.gpuimage.util.GpuImageConsts;
+
 /**
  * Helper class to draw to whole view using specific texture and texture matrix
  */
 public class GLDrawer2D {
-	private static final boolean DEBUG = CameraConsts.DEBUG;
+	private static final boolean DEBUG = GpuImageConsts.DEBUG;
 	private static final String TAG = "GLDrawer2D";
 
 	private static final String vss

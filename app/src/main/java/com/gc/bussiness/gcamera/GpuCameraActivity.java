@@ -2,10 +2,10 @@ package com.gc.bussiness.gcamera;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.hardware.Camera;
-import android.net.Uri;
-import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -15,14 +15,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.gc.R;
-import com.gc.bussiness.gcamera.hardware.encoder.MediaAudioEncoder;
-import com.gc.bussiness.gcamera.hardware.encoder.MediaEncoder;
-import com.gc.bussiness.gcamera.hardware.encoder.MediaMuxerWrapper;
-import com.gc.bussiness.gcamera.hardware.encoder.MediaVideoEncoder;
+import jp.co.cyberagent.android.encoder.MediaAudioEncoder;
+import jp.co.cyberagent.android.encoder.MediaEncoder;
+import jp.co.cyberagent.android.encoder.MediaMuxerWrapper;
+import jp.co.cyberagent.android.encoder.MediaVideoEncoder;
 import com.gc.bussiness.gcamera.hardware.listener.CaptureListener;
 import com.gc.bussiness.gcamera.hardware.listener.ClickListener;
 import com.gc.bussiness.gcamera.hardware.listener.TypeListener;
-import com.gc.bussiness.gcamera.hardware.view.CameraGLView;
 import com.gc.bussiness.gcamera.hardware.view.CaptureButton;
 import com.gc.bussiness.gcamera.hardware.view.CaptureLayout;
 import com.gc.bussiness.gcamera.hardware.view.FocusView;
@@ -37,9 +36,8 @@ import javax.inject.Inject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import jp.co.cyberagent.android.gpuimage.GPUImage;
-import jp.co.cyberagent.android.gpuimage.GPUImageColorBalanceFilter;
 import jp.co.cyberagent.android.gpuimage.GPUImageColorBlendFilter;
-import jp.co.cyberagent.android.gpuimage.GPUImageGlassSphereFilter;
+import jp.co.cyberagent.android.gpuimage.GpuGLView;
 
 import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
@@ -58,7 +56,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
      * for camera preview display
      */
     @BindView(R.id.cameraView)
-    CameraGLView mCameraView;
+    GpuGLView mCameraView;
     /**
      * for scale mode display
      */
@@ -75,8 +73,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
     CaptureLayout mCaptureLayout;
     @BindView(R.id.fouce_view)
     FocusView mFocusView;
-    @BindView(R.id.gpu_gl_surface_view)
-    GLSurfaceView mGpuGlSurfaceView;
+
     /**
      * muxer for audio/video recording
      */
@@ -115,6 +112,9 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
 
     @Override
     protected void setUp() {
+        mGpuImage.setGLSurfaceView(mCameraView);
+        mGpuImage.setFilter(new GPUImageColorBlendFilter());
+
         UltimateBar ultimateBar = new UltimateBar(this);
         ultimateBar.setColorBarForDrawer(Color.BLACK, 0, Color.BLACK, 0);
 
@@ -125,12 +125,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
         mCaptureLayout.setButtonFeatures(CaptureButton.BUTTON_STATE_BOTH);
         initListener();
 
-        mGpuImage.setGLSurfaceView(mGpuGlSurfaceView);
-        setUpResultFile();
-        Uri imageUri = Uri.parse(mSaveResultPath);
-        mGpuImage.setImage(imageUri);
-        mGpuImage.setFilter(new GPUImageColorBalanceFilter());
-        mGpuImage.setUpCamera(mCamera,90,false,false);
+
     }
 
     private void setUpResultFile() {
@@ -161,7 +156,15 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
         mCaptureLayout.setCaptureLisenter(new CaptureListener() {
             @Override
             public void takePictures() {
+                mCamera.takePicture(null, null, null, new Camera.PictureCallback() {
+                    @Override
+                    public void onPictureTaken(byte[] data, Camera camera) {
+                        File file = new File(mSaveResultPath);
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(data,0,data.length);
+                        mGpuImage.saveToPictures(bitmap,getExternalFilesDir("GpuImage").getAbsolutePath(),"gpu-image.jpg",null);
 
+                    }
+                });
             }
 
             @Override
@@ -227,13 +230,14 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
     @Override
     public void onResume() {
         super.onResume();
-        if (DEBUG) Log.v(TAG, "onResume:");
+        if (DEBUG) {Log.v(TAG, "onResume:");}
         mCameraView.onResume();
     }
 
     @Override
     public void onPause() {
-        if (DEBUG) Log.v(TAG, "onPause:");
+        if (DEBUG) {Log.v(TAG, "onPause:");}
+
         stopRecording();
         mCameraView.onPause();
         super.onPause();
@@ -312,7 +316,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
      * of encoder is heavy work
      */
     private void startRecording() {
-        if (DEBUG) Log.v(TAG, "startRecording:");
+        if (DEBUG) {Log.v(TAG, "startRecording:");}
         try {
             /**
              *  if you record audio only, ".m4a" is also OK
@@ -338,7 +342,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
      * request stop recording
      */
     private void stopRecording() {
-        if (DEBUG) Log.v(TAG, "stopRecording:mMuxer=" + mMuxer);
+        if (DEBUG) {Log.v(TAG, "stopRecording:mMuxer=" + mMuxer);}
         if (mMuxer != null) {
             mMuxer.stopRecording();
             mMuxer = null;
@@ -352,16 +356,15 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
     private final MediaEncoder.MediaEncoderListener mMediaEncoderListener = new MediaEncoder.MediaEncoderListener() {
         @Override
         public void onPrepared(final MediaEncoder encoder) {
-            if (DEBUG) Log.v(TAG, "onPrepared:encoder=" + encoder);
-            if (encoder instanceof MediaVideoEncoder)
-                mCameraView.setVideoEncoder((MediaVideoEncoder)encoder);
+            if (DEBUG) {Log.v(TAG, "onPrepared:encoder=" + encoder);}
+            if (encoder instanceof MediaVideoEncoder) {mCameraView.setVideoEncoder((MediaVideoEncoder)encoder);}
         }
 
         @Override
         public void onStopped(final MediaEncoder encoder) {
-            if (DEBUG) Log.v(TAG, "onStopped:encoder=" + encoder);
+            if (DEBUG) {Log.v(TAG, "onStopped:encoder=" + encoder);}
             if (encoder instanceof MediaVideoEncoder)
-                mCameraView.setVideoEncoder(null);
+            {mCameraView.setVideoEncoder(null);}
 
             synchronized (mEncodeLock) {
                 mEncodingFinished = true;

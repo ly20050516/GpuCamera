@@ -1,4 +1,4 @@
-package com.gc.bussiness.gcamera.hardware.glutils;
+package jp.co.cyberagent.android.glutils;
 /*
  * AudioVideoRecordingSample
  * Sample project to cature audio and video from internal mic/camera and save as MPEG4 file.
@@ -35,14 +35,15 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import com.gc.bussiness.gcamera.hardware.CameraConsts;
+
+import jp.co.cyberagent.android.gpuimage.util.GpuImageConsts;
 
 /**
  *  API >= 17
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class EGLBase {
-	private static final boolean DEBUG = CameraConsts.DEBUG;
+	private static final boolean DEBUG = GpuImageConsts.DEBUG;
 	private static final String TAG = "EGLBase";
 
     private static final int EGL_RECORDABLE_ANDROID = 0x3142;

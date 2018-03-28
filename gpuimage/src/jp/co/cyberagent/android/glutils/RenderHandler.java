@@ -1,4 +1,4 @@
-package com.gc.bussiness.gcamera.hardware.glutils;
+package jp.co.cyberagent.android.glutils;
 /*
  * AudioVideoRecordingSample
  * Sample project to cature audio and video from internal mic/camera and save as MPEG4 file.
@@ -31,13 +31,13 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 
-import com.gc.bussiness.gcamera.hardware.CameraConsts;
+import jp.co.cyberagent.android.gpuimage.util.GpuImageConsts;
 
 /**
  * Helper class to draw texture to whole view on private thread
  */
 public final class RenderHandler implements Runnable {
-	private static final boolean DEBUG = CameraConsts.DEBUG;
+	private static final boolean DEBUG = GpuImageConsts.DEBUG;
 	private static final String TAG = "RenderHandler";
 
 	private final Object mSync = new Object();

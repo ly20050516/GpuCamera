@@ -1,4 +1,4 @@
-package com.gc.bussiness.gcamera.hardware.encoder;
+package jp.co.cyberagent.android.encoder;
 /*
  * AudioVideoRecordingSample
  * Sample project to cature audio and video from internal mic/camera and save as MPEG4 file.
@@ -29,7 +29,6 @@ import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.gc.bussiness.gcamera.hardware.CameraConsts;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,8 +37,10 @@ import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 
+import jp.co.cyberagent.android.gpuimage.util.GpuImageConsts;
+
 public class MediaMuxerWrapper {
-	private static final boolean DEBUG = CameraConsts.DEBUG;
+	private static final boolean DEBUG = GpuImageConsts.DEBUG;
 	private static final String TAG = "MediaMuxerWrapper";
 
 	private static final String DIR_NAME = "AVRecSample";

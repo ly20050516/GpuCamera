@@ -21,76 +21,134 @@ import com.gc.bussiness.gcamera.hardware.listener.CaptureListener;
  */
 public class CaptureButton extends View {
 
-    /** 只能拍照 */
+    /**
+     * 只能拍照
+     */
     public static final int BUTTON_STATE_ONLY_CAPTURE = 0x101;
-    /** 只能录像 */
+    /**
+     * 只能录像
+     */
     public static final int BUTTON_STATE_ONLY_RECORDER = 0x102;
-    /** 两者都可以 */
+    /**
+     * 两者都可以
+     */
     public static final int BUTTON_STATE_BOTH = 0x103;
-    /** 当前按钮状态 */
+    /**
+     * 当前按钮状态
+     */
     private int state;
-    /** 按钮可执行的功能状态（拍照,录制,两者）*/
+    /**
+     * 按钮可执行的功能状态（拍照,录制,两者）
+     */
     private int button_state;
-    /** 空闲状态 */
+    /**
+     * 空闲状态
+     */
     public static final int STATE_IDLE = 0x001;
-    /** 按下状态 */
+    /**
+     * 按下状态
+     */
     public static final int STATE_PRESS = 0x002;
-    /** 长按状态 */
+    /**
+     * 长按状态
+     */
     public static final int STATE_LONG_PRESS = 0x003;
-    /** 录制状态 */
+    /**
+     * 录制状态
+     */
     public static final int STATE_RECORDERING = 0x004;
-    /** 禁止状态 */
+    /**
+     * 禁止状态
+     */
     public static final int STATE_BAN = 0x005;
 
-    /** 进度条颜色 */
+    /**
+     * 进度条颜色
+     */
     private int progress_color = 0xEE16AE16;
-    /** 外圆背景色 */
+    /**
+     * 外圆背景色
+     */
     private int outside_color = 0xEEDCDCDC;
-    /** 内圆背景色 */
+    /**
+     * 内圆背景色
+     */
     private int inside_color = 0xFFFFFFFF;
 
-    /** Touch_Event_Down时候记录的Y值 */
+    /**
+     * Touch_Event_Down时候记录的Y值
+     */
     private float event_Y;
 
 
     private Paint mPaint;
 
-    /** 进度条宽度 */
+    /**
+     * 进度条宽度
+     */
     private float strokeWidth;
-    /** 长按外圆半径变大的Size */
+    /**
+     * 长按外圆半径变大的Size
+     */
     private int outside_add_size;
-    /** 长安内圆缩小的Size */
+    /**
+     * 长安内圆缩小的Size
+     */
     private int inside_reduce_size;
 
-    /** 中心坐标 */
+    /**
+     * 中心坐标
+     */
     private float center_X;
     private float center_Y;
 
-    /** 按钮半径 */
+    /**
+     * 按钮半径
+     */
     private float button_radius;
-    /** 外圆半径 */
+    /**
+     * 外圆半径
+     */
     private float button_outside_radius;
-    /** 内圆半径 */
+    /**
+     * 内圆半径
+     */
     private float button_inside_radius;
-    /** 按钮大小 */
+    /**
+     * 按钮大小
+     */
     private int button_size;
 
-    /** 录制视频的进度 */
+    /**
+     * 录制视频的进度
+     */
     private float progress;
-    /** 录制视频最大时间长度 */
+    /**
+     * 录制视频最大时间长度
+     */
     private int duration;
-    /** 最短录制时间限制 */
+    /**
+     * 最短录制时间限制
+     */
     private int min_duration;
-    /** 记录当前录制的时间 */
+    /**
+     * 记录当前录制的时间
+     */
     private int recorded_time;
 
     private RectF rectF;
 
-    /** 长按后处理的逻辑Runnable */
+    /**
+     * 长按后处理的逻辑Runnable
+     */
     private LongPressRunnable longPressRunnable;
-    /** 按钮回调接口 **/
+    /**
+     * 按钮回调接口
+     **/
     private CaptureListener captureLisenter;
-    /** 计时器 */
+    /**
+     * 计时器
+     */
     private RecordCountDownTimer timer;
 
     public CaptureButton(Context context) {
@@ -114,13 +172,14 @@ public class CaptureButton extends View {
 
         progress = 0;
         longPressRunnable = new LongPressRunnable();
-
-        state = STATE_IDLE;                //初始化为空闲状态
-        button_state = BUTTON_STATE_BOTH;  //初始化按钮为可录制可拍照
-        Log.i("LiuTag", "CaptureButtom start");
-        duration = 10 * 1000;              //默认最长录制时间为10s
-        Log.i("LiuTag", "CaptureButtom end");
-        min_duration = 1500;              //默认最短录制时间为1.5s
+        //初始化为空闲状态
+        state = STATE_IDLE;
+        //初始化按钮为可录制可拍照
+        button_state = BUTTON_STATE_BOTH;
+        //默认最长录制时间为10s
+        duration = 10 * 1000;
+        //默认最短录制时间为1.5s
+        min_duration = 1500;
 
         center_X = (button_size + outside_add_size * 2) / 2;
         center_Y = (button_size + outside_add_size * 2) / 2;
@@ -130,8 +189,9 @@ public class CaptureButton extends View {
                 center_Y - (button_radius + outside_add_size - strokeWidth / 2),
                 center_X + (button_radius + outside_add_size - strokeWidth / 2),
                 center_Y + (button_radius + outside_add_size - strokeWidth / 2));
+        //录制定时器
 
-        timer = new RecordCountDownTimer(duration, duration / 360);    //录制定时器
+        timer = new RecordCountDownTimer(duration, duration / 360);
     }
 
     @Override
