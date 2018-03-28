@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.hardware.Camera;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -55,8 +56,8 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
     /**
      * for camera preview display
      */
-    @BindView(R.id.cameraView)
-    GpuGLView mCameraView;
+    @BindView(R.id.camera_gl_view)
+    GLSurfaceView mGlSurfaceView;
     /**
      * for scale mode display
      */
@@ -112,14 +113,13 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
 
     @Override
     protected void setUp() {
-        mGpuImage.setGLSurfaceView(mCameraView);
+        mGpuImage.setGLSurfaceView(mGlSurfaceView);
         mGpuImage.setFilter(new GPUImageColorBlendFilter());
+        mGpuImage.setUpCamera(mCamera);
 
         UltimateBar ultimateBar = new UltimateBar(this);
         ultimateBar.setColorBarForDrawer(Color.BLACK, 0, Color.BLACK, 0);
 
-        mCameraView.setVideoSize(1920, 1080);
-        mCameraView.setOnClickListener(mOnClickListener);
         updateScaleModeText();
         mCaptureLayout.setDuration(6 * 1000);
         mCaptureLayout.setButtonFeatures(CaptureButton.BUTTON_STATE_BOTH);
@@ -142,14 +142,14 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
         mSwitchCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCameraView.switchCamera();
+
             }
         });
 
         mFlashLamp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCameraView.switchFlash();
+
             }
         });
         //拍照 录像
@@ -231,7 +231,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
     public void onResume() {
         super.onResume();
         if (DEBUG) {Log.v(TAG, "onResume:");}
-        mCameraView.onResume();
+
     }
 
     @Override
@@ -239,7 +239,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
         if (DEBUG) {Log.v(TAG, "onPause:");}
 
         stopRecording();
-        mCameraView.onPause();
+
         super.onPause();
     }
 
@@ -250,12 +250,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
         @Override
         public void onClick(final View view) {
             int id =  (view.getId());
-            if(id == R.id.cameraView) {
 
-                final int scale_mode = (mCameraView.getScaleMode() + 1) % 4;
-                mCameraView.setScaleMode(scale_mode);
-                updateScaleModeText();
-            }
 
         }
     };
@@ -301,12 +296,8 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
     }
 
     private void updateScaleModeText() {
-        final int scale_mode = mCameraView.getScaleMode();
-        mScaleModeView.setText(
-                scale_mode == 0 ? "scale to fit"
-                        : (scale_mode == 1 ? "keep aspect(viewport)"
-                        : (scale_mode == 2 ? "keep aspect(matrix)"
-                        : (scale_mode == 3 ? "keep aspect(crop center)" : ""))));
+
+
     }
 
     /**
@@ -323,14 +314,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
              */
             mMuxer = new MediaMuxerWrapper(".mp4");
             mSaveResultPath = mMuxer.getOutputPath();
-            if (true) {
-                // for video capturing
-                new MediaVideoEncoder(mMuxer, mMediaEncoderListener, mCameraView.getVideoWidth(), mCameraView.getVideoHeight());
-            }
-            if (false) {
-                // for audio capturing
-                new MediaAudioEncoder(mMuxer, mMediaEncoderListener);
-            }
+
             mMuxer.prepare();
             mMuxer.startRecording();
         } catch (final IOException e) {
@@ -357,14 +341,11 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
         @Override
         public void onPrepared(final MediaEncoder encoder) {
             if (DEBUG) {Log.v(TAG, "onPrepared:encoder=" + encoder);}
-            if (encoder instanceof MediaVideoEncoder) {mCameraView.setVideoEncoder((MediaVideoEncoder)encoder);}
         }
 
         @Override
         public void onStopped(final MediaEncoder encoder) {
             if (DEBUG) {Log.v(TAG, "onStopped:encoder=" + encoder);}
-            if (encoder instanceof MediaVideoEncoder)
-            {mCameraView.setVideoEncoder(null);}
 
             synchronized (mEncodeLock) {
                 mEncodingFinished = true;

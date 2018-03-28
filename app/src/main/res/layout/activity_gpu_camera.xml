@@ -30,11 +30,10 @@
     android:background="#000000"
     android:orientation="vertical">
 
-    <jp.co.cyberagent.android.gpuimage.GpuGLView
-        android:id="@+id/cameraView"
+    <android.opengl.GLSurfaceView
+        android:id="@+id/camera_gl_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_centerInParent="true" />
+        android:layout_height="match_parent" />
 
     <LinearLayout
         android:layout_width="match_parent"
