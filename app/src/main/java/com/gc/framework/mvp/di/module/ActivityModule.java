@@ -38,6 +38,7 @@ import com.gc.bussiness.feed.opensource.OpenSourcePresenter;
 import com.gc.bussiness.gcamera.GpuCameraMvpPresenter;
 import com.gc.bussiness.gcamera.GpuCameraMvpView;
 import com.gc.bussiness.gcamera.GpuCameraPresenter;
+import com.gc.bussiness.gcamera.camera.CameraHelper;
 import com.gc.bussiness.login.LoginMvpPresenter;
 import com.gc.bussiness.login.LoginMvpView;
 import com.gc.bussiness.login.LoginPresenter;
@@ -138,12 +139,12 @@ public class ActivityModule {
     GPUImage providerGpuImage(@ActivityContext  Context context) {
         return new GPUImage(context);
     }
-    @Provides
-    Camera providerCamera(@ActivityContext Context context) {
-        Camera camera = Camera.open();
-        return camera;
-    }
 
+    @Provides
+    @PerActivity
+    CameraHelper providerCameraHelper(@ActivityContext Context context) {
+        return new CameraHelper(context);
+    }
     @Provides
     RatingDialogMvpPresenter<RatingDialogMvpView> provideRateUsPresenter(
             RatingDialogPresenter<RatingDialogMvpView> presenter) {

@@ -6,8 +6,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.hardware.Camera;
+import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
@@ -16,10 +18,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.gc.R;
-import jp.co.cyberagent.android.encoder.MediaAudioEncoder;
+
+import butterknife.OnClick;
 import jp.co.cyberagent.android.encoder.MediaEncoder;
 import jp.co.cyberagent.android.encoder.MediaMuxerWrapper;
-import jp.co.cyberagent.android.encoder.MediaVideoEncoder;
+
+import com.gc.bussiness.gcamera.camera.CameraHelper;
+import com.gc.bussiness.gcamera.camera.GPUImageFilterTools;
 import com.gc.bussiness.gcamera.hardware.listener.CaptureListener;
 import com.gc.bussiness.gcamera.hardware.listener.ClickListener;
 import com.gc.bussiness.gcamera.hardware.listener.TypeListener;
@@ -30,7 +35,11 @@ import com.gc.framework.mvp.ui.base.BaseActivity;
 import com.gc.framework.mvp.ui.custom.UltimateBar;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.inject.Inject;
 
@@ -38,7 +47,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import jp.co.cyberagent.android.gpuimage.GPUImage;
 import jp.co.cyberagent.android.gpuimage.GPUImageColorBlendFilter;
-import jp.co.cyberagent.android.gpuimage.GpuGLView;
+import jp.co.cyberagent.android.gpuimage.GPUImageFilter;
 
 import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
@@ -82,7 +91,10 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
     @Inject
     GPUImage mGpuImage;
     @Inject
-    Camera mCamera;
+    CameraHelper mCameraHelper;
+
+    private GPUImageFilter mFilter = new GPUImageColorBlendFilter();
+    private GPUImageFilterTools.FilterAdjuster mFilterAdjuster;
 
     String mSaveResultPath;
 
@@ -114,8 +126,8 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
     @Override
     protected void setUp() {
         mGpuImage.setGLSurfaceView(mGlSurfaceView);
-        mGpuImage.setFilter(new GPUImageColorBlendFilter());
-        mGpuImage.setUpCamera(mCamera);
+        mGpuImage.setFilter(mFilter);
+        mFilterAdjuster = new GPUImageFilterTools.FilterAdjuster(mFilter);
 
         UltimateBar ultimateBar = new UltimateBar(this);
         ultimateBar.setColorBarForDrawer(Color.BLACK, 0, Color.BLACK, 0);
@@ -125,46 +137,137 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
         mCaptureLayout.setButtonFeatures(CaptureButton.BUTTON_STATE_BOTH);
         initListener();
 
-
     }
 
-    private void setUpResultFile() {
-        File saveDir = getExternalFilesDir("GpuImage");
-        if(!saveDir.exists()) {
-            saveDir.mkdir();
+    /**
+     * 切换摄像头
+     * */
+    @OnClick(R.id.image_flash)
+    void onFlashLamp() {
+        mCameraHelper.switchFlash();
+    }
+    /**
+     * 切换闪光灯
+     */
+    @OnClick(R.id.image_switch)
+    void onSwitchCamera() {
+        mCameraHelper.switchCamera(this,mGpuImage);
+    }
+
+    private void takePicture() {
+        // TODO get a size that is about the size of the screen
+        Camera.Parameters params = mCameraHelper.getmCameraInstance().getParameters();
+        params.setRotation(90);
+        mCameraHelper.getmCameraInstance().setParameters(params);
+        for (Camera.Size size : params.getSupportedPictureSizes()) {
+            Log.i("ASDF", "Supported: " + size.width + "x" + size.height);
         }
-        File resultFile = new File(saveDir,"gpu-image.jpg");
-        mSaveResultPath = resultFile.getAbsolutePath();
+        mCameraHelper.getmCameraInstance().takePicture(null, null,
+                new Camera.PictureCallback() {
+
+                    @Override
+                    public void onPictureTaken(byte[] data, final Camera camera) {
+
+                        final File pictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
+                        if (pictureFile == null) {
+                            Log.d("ASDF",
+                                    "Error creating media file, check storage permissions");
+                            return;
+                        }
+
+                        try {
+                            FileOutputStream fos = new FileOutputStream(pictureFile);
+                            fos.write(data);
+                            fos.close();
+                        } catch (FileNotFoundException e) {
+                            Log.d("ASDF", "File not found: " + e.getMessage());
+                        } catch (IOException e) {
+                            Log.d("ASDF", "Error accessing file: " + e.getMessage());
+                        }
+
+                        data = null;
+                        Bitmap bitmap = BitmapFactory.decodeFile(pictureFile.getAbsolutePath());
+
+                        mGlSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+                        mGpuImage.saveToPictures(bitmap, "GPUImage",
+                                System.currentTimeMillis() + ".jpg",
+                                new GPUImage.OnPictureSavedListener() {
+
+                                    @Override
+                                    public void onPictureSaved(final Uri
+                                                                       uri) {
+                                        pictureFile.delete();
+                                        camera.startPreview();
+                                        mGlSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+                                    }
+                                });
+                    }
+                });
+    }
+
+    public static final int MEDIA_TYPE_IMAGE = 1;
+    public static final int MEDIA_TYPE_VIDEO = 2;
+
+    private static File getOutputMediaFile(final int type) {
+        // To be safe, you should check that the SDCard is mounted
+        // using Environment.getExternalStorageState() before doing this.
+
+        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES), "GpuCamera");
+        // This location works best if you want the created images to be shared
+        // between applications and persist after your app has been uninstalled.
+
+        // Create the storage directory if it does not exist
+        if (!mediaStorageDir.exists()) {
+            if (!mediaStorageDir.mkdirs()) {
+                Log.d("MyCameraApp", "failed to create directory");
+                return null;
+            }
+        }
+
+        // Create a media file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        File mediaFile;
+        if (type == MEDIA_TYPE_IMAGE) {
+            mediaFile = new File(mediaStorageDir.getPath() + File.separator +
+                    "IMG_" + timeStamp + ".jpg");
+        } else if (type == MEDIA_TYPE_VIDEO) {
+            mediaFile = new File(mediaStorageDir.getPath() + File.separator +
+                    "VID_" + timeStamp + ".mp4");
+        } else {
+            return null;
+        }
+
+        return mediaFile;
+    }
+
+    private void switchFilterTo(final GPUImageFilter filter) {
+        if (mFilter == null
+                || (filter != null && !mFilter.getClass().equals(filter.getClass()))) {
+            mFilter = filter;
+            mGpuImage.setFilter(mFilter);
+            mFilterAdjuster = new GPUImageFilterTools.FilterAdjuster(mFilter);
+        }
     }
 
     private void initListener() {
-        //切换摄像头
-        mSwitchCamera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
 
-            }
-        });
-
-        mFlashLamp.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
         //拍照 录像
         mCaptureLayout.setCaptureLisenter(new CaptureListener() {
             @Override
             public void takePictures() {
-                mCamera.takePicture(null, null, null, new Camera.PictureCallback() {
-                    @Override
-                    public void onPictureTaken(byte[] data, Camera camera) {
-                        File file = new File(mSaveResultPath);
-                        Bitmap bitmap = BitmapFactory.decodeByteArray(data,0,data.length);
-                        mGpuImage.saveToPictures(bitmap,getExternalFilesDir("GpuImage").getAbsolutePath(),"gpu-image.jpg",null);
+                if (mCameraHelper.getmCameraInstance().getParameters().getFocusMode().equals(
+                        Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+                    takePicture();
+                } else {
+                    mCameraHelper.getmCameraInstance().autoFocus(new Camera.AutoFocusCallback() {
 
-                    }
-                });
+                        @Override
+                        public void onAutoFocus(final boolean success, final Camera camera) {
+                            takePicture();
+                        }
+                    });
+                }
             }
 
             @Override
@@ -231,7 +334,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
     public void onResume() {
         super.onResume();
         if (DEBUG) {Log.v(TAG, "onResume:");}
-
+        mCameraHelper.onResume(this,mGpuImage);
     }
 
     @Override
@@ -241,19 +344,8 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
         stopRecording();
 
         super.onPause();
+        mCameraHelper.onPause();
     }
-
-    /**
-     * method when touch record button
-     */
-    private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(final View view) {
-            int id =  (view.getId());
-
-
-        }
-    };
 
     private void onCancel() {
         if(TextUtils.isEmpty(mSaveResultPath)) {
