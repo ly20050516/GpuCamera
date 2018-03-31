@@ -195,9 +195,7 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
     }
 
     public void setUpSurfaceTexture(final Camera camera) {
-        if(mCamera == null) {
-            mCamera = new WeakReference<>(camera);
-        }
+        mCamera = new WeakReference<>(camera);
         runOnDraw(new Runnable() {
             @Override
             public void run() {
@@ -207,7 +205,7 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
                 try {
                     camera.setPreviewTexture(mSurfaceTexture);
                     camera.setPreviewCallback(GPUImageRenderer.this);
-//                    camera.startPreview();
+                    startPreview();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -216,25 +214,24 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
     }
 
     private void startPreview() {
-        runOnDraw(new Runnable() {
-            @Override
-            public void run() {
-                Camera camera = mCamera.get();
-                if(camera != null) {
-                    Camera.Parameters parameters = camera.getParameters();
-                    // request closest supported preview size
-                    final Camera.Size closestSize = getClosestSupportedSize(
-                            parameters.getSupportedPreviewSizes(), mOutputWidth, mOutputHeight);
-                    parameters.setPreviewSize(closestSize.width, closestSize.height);
+        if(mCamera == null) {
+            return;
+        }
+        Camera camera = mCamera.get();
+        if(camera != null) {
+            Camera.Parameters parameters = camera.getParameters();
+            // request closest supported preview size
+            final Camera.Size closestSize = getClosestSupportedSize(
+                    parameters.getSupportedPreviewSizes(), mOutputWidth, mOutputHeight);
+            parameters.setPreviewSize(closestSize.width, closestSize.height);
 
-                    // request closest picture size for an aspect ratio issue on Nexus7
-                    final Camera.Size pictureSize = getClosestSupportedSize(
-                            parameters.getSupportedPictureSizes(), mOutputWidth, mOutputHeight);
-                    parameters.setPictureSize(pictureSize.width, pictureSize.height);
-                    camera.startPreview();
-                }
-            }
-        });
+            // request closest picture size for an aspect ratio issue on Nexus7
+            final Camera.Size pictureSize = getClosestSupportedSize(
+                    parameters.getSupportedPictureSizes(), mOutputWidth, mOutputHeight);
+            parameters.setPictureSize(pictureSize.width, pictureSize.height);
+            camera.setParameters(parameters);
+            camera.startPreview();
+        }
     }
 
     private static Camera.Size getClosestSupportedSize(List<Size> supportedSizes, final int requestedWidth, final int requestedHeight) {

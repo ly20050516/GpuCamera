@@ -150,9 +150,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
         Camera.Parameters params = mCameraHelper.getCameraInstance().getParameters();
         params.setRotation(90);
         mCameraHelper.getCameraInstance().setParameters(params);
-        for (Camera.Size size : params.getSupportedPictureSizes()) {
-            Log.i("ASDF", "Supported: " + size.width + "x" + size.height);
-        }
+
         mCameraHelper.getCameraInstance().takePicture(null, null,
                 new Camera.PictureCallback() {
 
@@ -185,8 +183,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
                                 new GPUImage.OnPictureSavedListener() {
 
                                     @Override
-                                    public void onPictureSaved(final Uri
-                                                                       uri) {
+                                    public void onPictureSaved(final Uri uri) {
                                         pictureFile.delete();
                                         camera.startPreview();
                                         mGlSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
