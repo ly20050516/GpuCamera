@@ -39,7 +39,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.WindowManager;
 
-import com.gc.bussiness.gcamera.hardware.CameraConsts;
+import com.gc.bussiness.gcamera.camera.CameraConsts;
 import jp.co.cyberagent.android.encoder.MediaVideoEncoder;
 import jp.co.cyberagent.android.glutils.GLDrawer2D;
 

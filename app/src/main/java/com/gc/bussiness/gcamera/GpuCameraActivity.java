@@ -9,13 +9,10 @@ import android.hardware.Camera;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.gc.R;
 
@@ -23,6 +20,7 @@ import butterknife.OnClick;
 import jp.co.cyberagent.android.encoder.MediaEncoder;
 import jp.co.cyberagent.android.encoder.MediaMuxerWrapper;
 
+import com.gc.bussiness.gcamera.camera.CameraConsts;
 import com.gc.bussiness.gcamera.camera.CameraHelper;
 import com.gc.bussiness.gcamera.camera.GPUImageFilterTools;
 import com.gc.bussiness.gcamera.hardware.listener.CaptureListener;
@@ -33,13 +31,12 @@ import com.gc.bussiness.gcamera.hardware.view.CaptureLayout;
 import com.gc.bussiness.gcamera.hardware.view.FocusView;
 import com.gc.framework.mvp.ui.base.BaseActivity;
 import com.gc.framework.mvp.ui.custom.UltimateBar;
+import com.gc.framework.mvp.utils.CommonUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import javax.inject.Inject;
 
@@ -67,11 +64,6 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
      */
     @BindView(R.id.camera_gl_view)
     GLSurfaceView mGlSurfaceView;
-    /**
-     * for scale mode display
-     */
-    @BindView(R.id.scalemode_textview)
-    TextView mScaleModeView;
     /**
      * button for start/stop recording
      */
@@ -132,7 +124,6 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
         UltimateBar ultimateBar = new UltimateBar(this);
         ultimateBar.setColorBarForDrawer(Color.BLACK, 0, Color.BLACK, 0);
 
-        updateScaleModeText();
         mCaptureLayout.setDuration(6 * 1000);
         mCaptureLayout.setButtonFeatures(CaptureButton.BUTTON_STATE_BOTH);
         initListener();
@@ -156,19 +147,19 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
 
     private void takePicture() {
         // TODO get a size that is about the size of the screen
-        Camera.Parameters params = mCameraHelper.getmCameraInstance().getParameters();
+        Camera.Parameters params = mCameraHelper.getCameraInstance().getParameters();
         params.setRotation(90);
-        mCameraHelper.getmCameraInstance().setParameters(params);
+        mCameraHelper.getCameraInstance().setParameters(params);
         for (Camera.Size size : params.getSupportedPictureSizes()) {
             Log.i("ASDF", "Supported: " + size.width + "x" + size.height);
         }
-        mCameraHelper.getmCameraInstance().takePicture(null, null,
+        mCameraHelper.getCameraInstance().takePicture(null, null,
                 new Camera.PictureCallback() {
 
                     @Override
                     public void onPictureTaken(byte[] data, final Camera camera) {
 
-                        final File pictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
+                        final File pictureFile = CommonUtils.getOutputMediaFile(CameraConsts.MEDIA_TYPE_IMAGE);
                         if (pictureFile == null) {
                             Log.d("ASDF",
                                     "Error creating media file, check storage permissions");
@@ -205,42 +196,6 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
                 });
     }
 
-    public static final int MEDIA_TYPE_IMAGE = 1;
-    public static final int MEDIA_TYPE_VIDEO = 2;
-
-    private static File getOutputMediaFile(final int type) {
-        // To be safe, you should check that the SDCard is mounted
-        // using Environment.getExternalStorageState() before doing this.
-
-        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES), "GpuCamera");
-        // This location works best if you want the created images to be shared
-        // between applications and persist after your app has been uninstalled.
-
-        // Create the storage directory if it does not exist
-        if (!mediaStorageDir.exists()) {
-            if (!mediaStorageDir.mkdirs()) {
-                Log.d("MyCameraApp", "failed to create directory");
-                return null;
-            }
-        }
-
-        // Create a media file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        File mediaFile;
-        if (type == MEDIA_TYPE_IMAGE) {
-            mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-                    "IMG_" + timeStamp + ".jpg");
-        } else if (type == MEDIA_TYPE_VIDEO) {
-            mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-                    "VID_" + timeStamp + ".mp4");
-        } else {
-            return null;
-        }
-
-        return mediaFile;
-    }
-
     private void switchFilterTo(final GPUImageFilter filter) {
         if (mFilter == null
                 || (filter != null && !mFilter.getClass().equals(filter.getClass()))) {
@@ -256,11 +211,11 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
         mCaptureLayout.setCaptureLisenter(new CaptureListener() {
             @Override
             public void takePictures() {
-                if (mCameraHelper.getmCameraInstance().getParameters().getFocusMode().equals(
+                if (mCameraHelper.getCameraInstance().getParameters().getFocusMode().equals(
                         Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
                     takePicture();
                 } else {
-                    mCameraHelper.getmCameraInstance().autoFocus(new Camera.AutoFocusCallback() {
+                    mCameraHelper.getCameraInstance().autoFocus(new Camera.AutoFocusCallback() {
 
                         @Override
                         public void onAutoFocus(final boolean success, final Camera camera) {
@@ -320,7 +275,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
         mCaptureLayout.setLeftClickListener(new ClickListener() {
             @Override
             public void onClick() {
-
+                finish();
             }
         });
         mCaptureLayout.setRightClickListener(new ClickListener() {
@@ -380,17 +335,10 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
     }
 
     private void setActivityResult() {
-
         Intent resIntent = new Intent();
         resIntent.putExtra("videoFile", mSaveResultPath);
-
-
     }
 
-    private void updateScaleModeText() {
-
-
-    }
 
     /**
      * start resorcing

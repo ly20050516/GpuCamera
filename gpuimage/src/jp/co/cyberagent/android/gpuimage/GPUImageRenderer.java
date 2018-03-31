@@ -32,11 +32,15 @@ import jp.co.cyberagent.android.gpuimage.util.TextureRotationUtil;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 import static jp.co.cyberagent.android.gpuimage.util.TextureRotationUtil.TEXTURE_NO_ROTATION;
@@ -75,6 +79,7 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
     private boolean mFlipHorizontal;
     private boolean mFlipVertical;
     private GPUImage.ScaleType mScaleType = GPUImage.ScaleType.CENTER_CROP;
+    private WeakReference<Camera> mCamera;
 
     private float mBackgroundRed = 0;
     private float mBackgroundGreen = 0;
@@ -109,6 +114,7 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
     public void onSurfaceChanged(final GL10 gl, final int width, final int height) {
         mOutputWidth = width;
         mOutputHeight = height;
+        startPreview();
         GLES20.glViewport(0, 0, width, height);
         GLES20.glUseProgram(mFilter.getProgram());
         mFilter.onOutputSizeChanged(width, height);
@@ -189,6 +195,9 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
     }
 
     public void setUpSurfaceTexture(final Camera camera) {
+        if(mCamera == null) {
+            mCamera = new WeakReference<>(camera);
+        }
         runOnDraw(new Runnable() {
             @Override
             public void run() {
@@ -198,12 +207,49 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
                 try {
                     camera.setPreviewTexture(mSurfaceTexture);
                     camera.setPreviewCallback(GPUImageRenderer.this);
-                    camera.startPreview();
+//                    camera.startPreview();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         });
+    }
+
+    private void startPreview() {
+        runOnDraw(new Runnable() {
+            @Override
+            public void run() {
+                Camera camera = mCamera.get();
+                if(camera != null) {
+                    Camera.Parameters parameters = camera.getParameters();
+                    // request closest supported preview size
+                    final Camera.Size closestSize = getClosestSupportedSize(
+                            parameters.getSupportedPreviewSizes(), mOutputWidth, mOutputHeight);
+                    parameters.setPreviewSize(closestSize.width, closestSize.height);
+
+                    // request closest picture size for an aspect ratio issue on Nexus7
+                    final Camera.Size pictureSize = getClosestSupportedSize(
+                            parameters.getSupportedPictureSizes(), mOutputWidth, mOutputHeight);
+                    parameters.setPictureSize(pictureSize.width, pictureSize.height);
+                    camera.startPreview();
+                }
+            }
+        });
+    }
+
+    private static Camera.Size getClosestSupportedSize(List<Size> supportedSizes, final int requestedWidth, final int requestedHeight) {
+        return (Camera.Size) Collections.min(supportedSizes, new Comparator<Size>() {
+
+            private int diff(final Camera.Size size) {
+                return Math.abs(requestedWidth - size.width) + Math.abs(requestedHeight - size.height);
+            }
+
+            @Override
+            public int compare(final Camera.Size lhs, final Camera.Size rhs) {
+                return diff(lhs) - diff(rhs);
+            }
+        });
+
     }
 
     public SurfaceTexture getSurfaceTexture() {

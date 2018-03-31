@@ -20,7 +20,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
+import android.util.Log;
 import android.view.Surface;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -33,6 +38,8 @@ import static android.os.Build.VERSION_CODES.GINGERBREAD;
  * @author ly
  */
 public class CameraHelper {
+
+    public static final String TAG = "CameraHelper";
 
     private final CameraHelperImpl mImpl;
     private int mCurrentCameraId = 0;
@@ -85,19 +92,34 @@ public class CameraHelper {
         Camera.Parameters parameters = mCameraInstance.getParameters();
         // TODO adjust by getting supportedPreviewSizes and then choosing
         // the best one for screen size (best fill screen)
+        final List<String> focusModes = parameters.getSupportedFocusModes();
         if (parameters.getSupportedFocusModes().contains(
                 Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
             parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+        }else if (focusModes.contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
+            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
         }
+        // let's try fastest frame rate. You will get near 60fps, but your device become hot.
+        final List<int[]> supportedFpsRange = parameters.getSupportedPreviewFpsRange();
+        final int n = supportedFpsRange != null ? supportedFpsRange.size() : 0;
+        int[] range;
+        for (int i = 0; i < n; i++) {
+            range = supportedFpsRange.get(i);
+            Log.i(TAG, String.format("supportedFpsRange(%d)=(%d,%d)", i, range[0], range[1]));
+        }
+        final int[] max_fps = supportedFpsRange.get(supportedFpsRange.size() - 1);
+        Log.i(TAG, String.format("fps:%d-%d", max_fps[0], max_fps[1]));
+        parameters.setPreviewFpsRange(max_fps[0], max_fps[1]);
+
         mCameraInstance.setParameters(parameters);
 
-        int orientation = getCameraDisplayOrientation(
-                activity, mCurrentCameraId);
+        int orientation = getCameraDisplayOrientation(activity, mCurrentCameraId);
         CameraInfo2 cameraInfo = new CameraInfo2();
         getCameraInfo(mCurrentCameraId, cameraInfo);
         boolean flipHorizontal = cameraInfo.facing == CameraInfo.CAMERA_FACING_FRONT;
         gpuImage.setUpCamera(mCameraInstance, orientation, flipHorizontal, false);
     }
+
 
     /** A safe way to get an instance of the Camera object. */
     private Camera getCameraInstance(final int id) {
@@ -110,7 +132,7 @@ public class CameraHelper {
         return c;
     }
 
-    public Camera getmCameraInstance() {
+    public Camera getCameraInstance() {
         return mCameraInstance;
     }
 
