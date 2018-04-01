@@ -217,6 +217,7 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
         if(mCamera == null) {
             return;
         }
+        Log.d("LiuTag", "startPreview: ");
         Camera camera = mCamera.get();
         if(camera != null) {
             Camera.Parameters parameters = camera.getParameters();
@@ -224,10 +225,13 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
             final Camera.Size closestSize = getClosestSupportedSize(
                     parameters.getSupportedPreviewSizes(), mOutputWidth, mOutputHeight);
             parameters.setPreviewSize(closestSize.width, closestSize.height);
+            Log.d("LiuTag", "startPreview: " + closestSize.width + ";" + closestSize.height);
 
             // request closest picture size for an aspect ratio issue on Nexus7
             final Camera.Size pictureSize = getClosestSupportedSize(
                     parameters.getSupportedPictureSizes(), mOutputWidth, mOutputHeight);
+            Log.d("LiuTag", "startPreview: " + pictureSize.width + ";" + pictureSize.height);
+
             parameters.setPictureSize(pictureSize.width, pictureSize.height);
             camera.setParameters(parameters);
             camera.startPreview();

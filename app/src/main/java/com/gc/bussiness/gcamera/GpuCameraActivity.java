@@ -85,7 +85,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
     @Inject
     CameraHelper mCameraHelper;
 
-    private GPUImageFilter mFilter = new GPUImageColorBlendFilter();
+    private GPUImageFilter mFilter = new GPUImageFilter();
     private GPUImageFilterTools.FilterAdjuster mFilterAdjuster;
 
     String mSaveResultPath;
@@ -178,7 +178,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
                         Bitmap bitmap = BitmapFactory.decodeFile(pictureFile.getAbsolutePath());
 
                         mGlSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-                        mGpuImage.saveToPictures(bitmap, "GPUImage",
+                        mGpuImage.saveToPictures(bitmap, "GPUCamera",
                                 System.currentTimeMillis() + ".jpg",
                                 new GPUImage.OnPictureSavedListener() {
 
