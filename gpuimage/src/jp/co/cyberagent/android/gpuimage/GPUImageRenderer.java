@@ -114,7 +114,7 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
     public void onSurfaceChanged(final GL10 gl, final int width, final int height) {
         mOutputWidth = width;
         mOutputHeight = height;
-        startPreview();
+        configCameraSize();
         GLES20.glViewport(0, 0, width, height);
         GLES20.glUseProgram(mFilter.getProgram());
         mFilter.onOutputSizeChanged(width, height);
@@ -205,7 +205,7 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
                 try {
                     camera.setPreviewTexture(mSurfaceTexture);
                     camera.setPreviewCallback(GPUImageRenderer.this);
-                    startPreview();
+                    camera.startPreview();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -213,11 +213,11 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
         });
     }
 
-    private void startPreview() {
+    private void configCameraSize() {
         if(mCamera == null) {
             return;
         }
-        Log.d("LiuTag", "startPreview: ");
+        Log.d("LiuTag", "configCameraSize: ");
         Camera camera = mCamera.get();
         if(camera != null) {
             Camera.Parameters parameters = camera.getParameters();
@@ -225,32 +225,46 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
             final Camera.Size closestSize = getClosestSupportedSize(
                     parameters.getSupportedPreviewSizes(), mOutputWidth, mOutputHeight);
             parameters.setPreviewSize(closestSize.width, closestSize.height);
-            Log.d("LiuTag", "startPreview: " + closestSize.width + ";" + closestSize.height);
+            Log.d("LiuTag", "configCameraSize: " + closestSize.width + ";" + closestSize.height);
+            for (Size item:parameters.getSupportedPreviewSizes()) {
+                Log.d("LiuTag","preview Size = " + item.width + ";" + item.height);
+            }
 
             // request closest picture size for an aspect ratio issue on Nexus7
             final Camera.Size pictureSize = getClosestSupportedSize(
                     parameters.getSupportedPictureSizes(), mOutputWidth, mOutputHeight);
-            Log.d("LiuTag", "startPreview: " + pictureSize.width + ";" + pictureSize.height);
+            Log.d("LiuTag", "configCameraSize picture size : " + pictureSize.width + ";" + pictureSize.height);
+            Log.d("LiuTag", "mOutputWidth & mOutputHeight: " + mOutputWidth + ";" +mOutputHeight);
 
+            List<Size> list = parameters.getSupportedPictureSizes();
+            for (Size item:list) {
+                Log.d("LiuTag","Size = " + item.width + ";" + item.height);
+            }
             parameters.setPictureSize(pictureSize.width, pictureSize.height);
             camera.setParameters(parameters);
-            camera.startPreview();
         }
     }
 
     private static Camera.Size getClosestSupportedSize(List<Size> supportedSizes, final int requestedWidth, final int requestedHeight) {
-        return (Camera.Size) Collections.min(supportedSizes, new Comparator<Size>() {
-
-            private int diff(final Camera.Size size) {
-                return Math.abs(requestedWidth - size.width) + Math.abs(requestedHeight - size.height);
-            }
+        Size closetSize = supportedSizes.get(supportedSizes.size() - 1);
+        final double ratio = requestedHeight * 1.0 / requestedWidth;
+        final double gap = 0.005f;
+        Collections.sort(supportedSizes, new Comparator<Size>() {
 
             @Override
-            public int compare(final Camera.Size lhs, final Camera.Size rhs) {
-                return diff(lhs) - diff(rhs);
+            public int compare(Size o1, Size o2) {
+                return o2.width - o1.width;
             }
         });
 
+        for (Size item: supportedSizes) {
+            double sratio = item.width * 1.0 / item.height;
+            if(Math.abs(ratio - sratio) <= gap) {
+                closetSize = item;
+                break;
+            }
+        }
+        return closetSize;
     }
 
     public SurfaceTexture getSurfaceTexture() {
