@@ -206,6 +206,7 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
                     camera.setPreviewTexture(mSurfaceTexture);
                     camera.setPreviewCallback(GPUImageRenderer.this);
                     camera.startPreview();
+                    configCameraSize();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -214,7 +215,7 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
     }
 
     private void configCameraSize() {
-        if(mCamera == null) {
+        if(mCamera == null || mOutputWidth == 0 || mOutputHeight == 0) {
             return;
         }
         Log.d("LiuTag", "configCameraSize: ");

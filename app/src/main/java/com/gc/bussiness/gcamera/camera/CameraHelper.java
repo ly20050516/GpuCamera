@@ -47,11 +47,7 @@ public class CameraHelper {
 
     @Inject
     public CameraHelper(final Context context) {
-        if (SDK_INT >= GINGERBREAD) {
-            mImpl = new CameraHelperGB();
-        } else {
-            mImpl = new CameraHelperBase(context);
-        }
+        mImpl = new CameraHelperGB();
     }
 
     public void onResume(final Activity activity, GPUImage gpuImage) {

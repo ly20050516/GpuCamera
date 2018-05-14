@@ -140,12 +140,7 @@ public class GPUImage {
     public void setUpCamera(final Camera camera, final int degrees, final boolean flipHorizontal,
             final boolean flipVertical) {
         mGlSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.GINGERBREAD_MR1) {
-            setUpCameraGingerbread(camera);
-        } else {
-            camera.setPreviewCallback(mRenderer);
-            camera.startPreview();
-        }
+        setUpCameraGingerbread(camera);
         Rotation rotation = Rotation.NORMAL;
         switch (degrees) {
             case 90:
@@ -302,8 +297,7 @@ public class GPUImage {
         }
 
         GPUImageRenderer renderer = new GPUImageRenderer(mFilter);
-        renderer.setRotation(Rotation.NORMAL,
-                mRenderer.isFlippedHorizontally(), mRenderer.isFlippedVertically());
+        renderer.setRotation(Rotation.NORMAL, mRenderer.isFlippedHorizontally(), mRenderer.isFlippedVertically());
         renderer.setScaleType(mScaleType);
         PixelBuffer buffer = new PixelBuffer(bitmap.getWidth(), bitmap.getHeight());
         buffer.setRenderer(renderer);
@@ -454,16 +448,14 @@ public class GPUImage {
         }
 
         private void saveImage(final String folderName, final String fileName, final Bitmap image) {
-            File path = Environment
-                    .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-            File file = new File(path, folderName + "/" + fileName);
+            File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+            File file = new File(path, folderName + File.separator + fileName);
             try {
                 file.getParentFile().mkdirs();
                 image.compress(CompressFormat.JPEG, 100, new FileOutputStream(file));
                 MediaScannerConnection.scanFile(mContext,
-                        new String[] {
-                            file.toString()
-                        }, null,
+                        new String[] {file.toString()},
+                        null,
                         new MediaScannerConnection.OnScanCompletedListener() {
                             @Override
                             public void onScanCompleted(final String path, final Uri uri) {

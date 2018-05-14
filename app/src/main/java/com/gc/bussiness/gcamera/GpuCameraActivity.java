@@ -76,10 +76,6 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
     @BindView(R.id.fouce_view)
     FocusView mFocusView;
 
-    /**
-     * muxer for audio/video recording
-     */
-    private MediaMuxerWrapper mMuxer;
     @Inject
     GPUImage mGpuImage;
     @Inject
@@ -87,11 +83,6 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
 
     private GPUImageFilter mFilter = new GPUImageFilter();
     private GPUImageFilterTools.FilterAdjuster mFilterAdjuster;
-
-    String mSaveResultPath;
-
-    private Object mEncodeLock = new Object();
-    private boolean mEncodingFinished = false;
 
     @Inject
     GpuCameraMvpPresenter<GpuCameraMvpView> mPresenter;
@@ -125,8 +116,10 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
         ultimateBar.setColorBarForDrawer(Color.BLACK, 0, Color.BLACK, 0);
 
         mCaptureLayout.setDuration(6 * 1000);
-        mCaptureLayout.setButtonFeatures(CaptureButton.BUTTON_STATE_BOTH);
+        mCaptureLayout.setButtonFeatures(CaptureButton.BUTTON_STATE_ONLY_CAPTURE);
         initListener();
+
+
 
     }
 
@@ -173,23 +166,28 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
                         } catch (IOException e) {
                             Log.d("ASDF", "Error accessing file: " + e.getMessage());
                         }
+                        try {
+                            Bitmap bitmap = BitmapFactory.decodeFile(pictureFile.getAbsolutePath());
 
-                        data = null;
-                        Bitmap bitmap = BitmapFactory.decodeFile(pictureFile.getAbsolutePath());
+                            mGlSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+                            mGpuImage.saveToPictures(bitmap, "GPUCamera",
+                                    System.currentTimeMillis() + ".jpg",
+                                    new GPUImage.OnPictureSavedListener() {
 
-                        mGlSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-                        mGpuImage.saveToPictures(bitmap, "GPUCamera",
-                                System.currentTimeMillis() + ".jpg",
-                                new GPUImage.OnPictureSavedListener() {
+                                        @Override
+                                        public void onPictureSaved(final Uri uri) {
+                                            pictureFile.delete();
+                                            mCameraHelper.onPause();
+                                            mCameraHelper.onResume(GpuCameraActivity.this,mGpuImage);
+                                            mCaptureLayout.resetCaptureLayout();
+                                        }
+                                    });
 
-                                    @Override
-                                    public void onPictureSaved(final Uri uri) {
-                                        pictureFile.delete();
-                                        camera.startPreview();
-                                        mGlSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-                                    }
-                                });
+                        } catch (Exception e) {
+                            Log.d("ASDF", "Error decode file: " + e.getMessage());
+                        }
                     }
+
                 });
     }
 
@@ -226,9 +224,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
             public void recordStart() {
                 mSwitchCamera.setVisibility(INVISIBLE);
                 mFlashLamp.setVisibility(INVISIBLE);
-                if(mMuxer == null) {
-                    startRecording();
-                }
+                mCaptureLayout.setTextWithAnimation("暂时不支持视频");
             }
 
             @Override
@@ -241,44 +237,25 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
 
             @Override
             public void recordEnd(long time) {
-
-                stopRecording();
-
+                mCaptureLayout.setTextWithAnimation("暂时不支持视频");
             }
 
             @Override
             public void recordZoom(float zoom) {
-
+                mCaptureLayout.setTextWithAnimation("暂时不支持视频");
             }
 
             @Override
             public void recordError() {
-
+                mCaptureLayout.setTextWithAnimation("暂时不支持视频");
             }
         });
-        //确认 取消
-        mCaptureLayout.setTypeLisenter(new TypeListener() {
-            @Override
-            public void cancel() {
-                onCancel();
-            }
 
-            @Override
-            public void confirm() {
-                onConfirm();
-            }
-        });
 
         mCaptureLayout.setLeftClickListener(new ClickListener() {
             @Override
             public void onClick() {
                 finish();
-            }
-        });
-        mCaptureLayout.setRightClickListener(new ClickListener() {
-            @Override
-            public void onClick() {
-
             }
         });
     }
@@ -292,102 +269,8 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
     @Override
     public void onPause() {
         if (DEBUG) {Log.v(TAG, "onPause:");}
-
-        stopRecording();
-
         super.onPause();
         mCameraHelper.onPause();
     }
 
-    private void onCancel() {
-        if(TextUtils.isEmpty(mSaveResultPath)) {
-            return;
-        }
-
-        File file = new File(mSaveResultPath);
-        file.delete();
-
-        mCaptureLayout.resetCaptureLayout();
-
-    }
-
-    private void onConfirm() {
-
-        if(TextUtils.isEmpty(mSaveResultPath)) {
-            return;
-        }
-
-        synchronized (mEncodeLock) {
-            if(mEncodingFinished) {
-                setActivityResult();
-            }else {
-                try {
-                    mEncodeLock.wait(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                setActivityResult();
-            }
-        }
-    }
-
-    private void setActivityResult() {
-        Intent resIntent = new Intent();
-        resIntent.putExtra("videoFile", mSaveResultPath);
-    }
-
-
-    /**
-     * start resorcing
-     * This is a sample project and call this on UI thread to avoid being complicated
-     * but basically this should be called on private thread because prepareing
-     * of encoder is heavy work
-     */
-    private void startRecording() {
-        if (DEBUG) {Log.v(TAG, "startRecording:");}
-        try {
-            /**
-             *  if you record audio only, ".m4a" is also OK
-             */
-            mMuxer = new MediaMuxerWrapper(".mp4");
-            mSaveResultPath = mMuxer.getOutputPath();
-
-            mMuxer.prepare();
-            mMuxer.startRecording();
-        } catch (final IOException e) {
-            Log.e(TAG, "startCapture:", e);
-        }
-    }
-
-    /**
-     * request stop recording
-     */
-    private void stopRecording() {
-        if (DEBUG) {Log.v(TAG, "stopRecording:mMuxer=" + mMuxer);}
-        if (mMuxer != null) {
-            mMuxer.stopRecording();
-            mMuxer = null;
-            // you should not wait here
-        }
-    }
-
-    /**
-     * callback methods from encoder
-     */
-    private final MediaEncoder.MediaEncoderListener mMediaEncoderListener = new MediaEncoder.MediaEncoderListener() {
-        @Override
-        public void onPrepared(final MediaEncoder encoder) {
-            if (DEBUG) {Log.v(TAG, "onPrepared:encoder=" + encoder);}
-        }
-
-        @Override
-        public void onStopped(final MediaEncoder encoder) {
-            if (DEBUG) {Log.v(TAG, "onStopped:encoder=" + encoder);}
-
-            synchronized (mEncodeLock) {
-                mEncodingFinished = true;
-                mEncodeLock.notifyAll();
-            }
-        }
-    };
 }
