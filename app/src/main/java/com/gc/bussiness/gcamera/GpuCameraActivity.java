@@ -1,50 +1,44 @@
 package com.gc.bussiness.gcamera;
 
+import android.Manifest;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.hardware.Camera;
-import android.net.Uri;
-import android.opengl.GLSurfaceView;
+import android.graphics.Matrix;
+import android.graphics.SurfaceTexture;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
-import android.util.Log;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
+import android.view.TextureView;
 import android.widget.ImageView;
 
 import com.gc.R;
-
-import butterknife.OnClick;
-import jp.co.cyberagent.android.encoder.MediaEncoder;
-import jp.co.cyberagent.android.encoder.MediaMuxerWrapper;
-
-import com.gc.bussiness.gcamera.camera.CameraConsts;
 import com.gc.bussiness.gcamera.camera.CameraHelper;
-import com.gc.bussiness.gcamera.camera.GPUImageFilterTools;
+import com.gc.bussiness.gcamera.camera2.AutoFitTextureView;
+import com.gc.bussiness.gcamera.camera2.Camera2Helper;
 import com.gc.bussiness.gcamera.hardware.listener.CaptureListener;
 import com.gc.bussiness.gcamera.hardware.listener.ClickListener;
-import com.gc.bussiness.gcamera.hardware.listener.TypeListener;
 import com.gc.bussiness.gcamera.hardware.view.CaptureButton;
 import com.gc.bussiness.gcamera.hardware.view.CaptureLayout;
 import com.gc.bussiness.gcamera.hardware.view.FocusView;
 import com.gc.framework.mvp.ui.base.BaseActivity;
 import com.gc.framework.mvp.ui.custom.UltimateBar;
-import com.gc.framework.mvp.utils.CommonUtils;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import com.gc.framework.mvp.utils.AppLogger;
 
 import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import jp.co.cyberagent.android.gpuimage.GPUImage;
-import jp.co.cyberagent.android.gpuimage.GPUImageColorBlendFilter;
-import jp.co.cyberagent.android.gpuimage.GPUImageFilter;
 
 import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
@@ -56,14 +50,13 @@ import static android.view.View.VISIBLE;
 
 public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView {
 
-    private static final boolean DEBUG = false;
-    private static final String TAG = "GpuCameraActivity";
+    private static final int REQUEST_CAMERA_PERMISSION = 1;
 
     /**
      * for camera preview display
      */
     @BindView(R.id.camera_gl_view)
-    GLSurfaceView mGlSurfaceView;
+    AutoFitTextureView mGlSurfaceView;
     /**
      * button for start/stop recording
      */
@@ -81,8 +74,6 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
     @Inject
     CameraHelper mCameraHelper;
 
-    private GPUImageFilter mFilter = new GPUImageFilter();
-    private GPUImageFilterTools.FilterAdjuster mFilterAdjuster;
 
     @Inject
     GpuCameraMvpPresenter<GpuCameraMvpView> mPresenter;
@@ -108,18 +99,55 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
 
     @Override
     protected void setUp() {
-        mGpuImage.setGLSurfaceView(mGlSurfaceView);
-        mGpuImage.setFilter(mFilter);
-        mFilterAdjuster = new GPUImageFilterTools.FilterAdjuster(mFilter);
 
         UltimateBar ultimateBar = new UltimateBar(this);
         ultimateBar.setColorBarForDrawer(Color.BLACK, 0, Color.BLACK, 0);
 
         mCaptureLayout.setDuration(6 * 1000);
         mCaptureLayout.setButtonFeatures(CaptureButton.BUTTON_STATE_ONLY_CAPTURE);
+
+        initCamera2Helper();
         initListener();
 
+    }
 
+    private void initCamera2Helper() {
+        Camera2Helper.getInstance().initHelper(getApplicationContext(), new Camera2Helper.Camera2HelperCallback() {
+            @Override
+            public void setPreviewAspectRatio(int width, int height) {
+                mGlSurfaceView.setAspectRatio(width,height);
+                AppLogger.d("initCamera2Helper setPreviewAspectRatio width = " + width + ",height = " + height);
+            }
+
+            @Override
+            public SurfaceTexture getPreviewSurfaceTexture() {
+                AppLogger.d("initCamera2Helper getPreviewSurfaceTexture");
+                return mGlSurfaceView.getSurfaceTexture();
+
+            }
+
+            @Override
+            public void setPreviewTransform(Matrix matrix) {
+                mGlSurfaceView.setTransform(matrix);
+                AppLogger.d("initCamera2Helper setPreviewTransform",matrix);
+
+            }
+
+            @Override
+            public void onConfigureFailed() {
+
+            }
+
+            @Override
+            public void onCaptureCompleted(String filePath) {
+
+            }
+
+            @Override
+            public void onCameraDeviceError() {
+
+            }
+        });
 
     }
 
@@ -128,77 +156,16 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
      * */
     @OnClick(R.id.image_flash)
     void onFlashLamp() {
-        mCameraHelper.switchFlash();
+
     }
     /**
      * 切换闪光灯
      */
     @OnClick(R.id.image_switch)
     void onSwitchCamera() {
-        mCameraHelper.switchCamera(this,mGpuImage);
+
     }
 
-    private void takePicture() {
-        // TODO get a size that is about the size of the screen
-        Camera.Parameters params = mCameraHelper.getCameraInstance().getParameters();
-        params.setRotation(90);
-        mCameraHelper.getCameraInstance().setParameters(params);
-
-        mCameraHelper.getCameraInstance().takePicture(null, null,
-                new Camera.PictureCallback() {
-
-                    @Override
-                    public void onPictureTaken(byte[] data, final Camera camera) {
-
-                        final File pictureFile = CommonUtils.getOutputMediaFile(CameraConsts.MEDIA_TYPE_IMAGE);
-                        if (pictureFile == null) {
-                            Log.d("ASDF",
-                                    "Error creating media file, check storage permissions");
-                            return;
-                        }
-
-                        try {
-                            FileOutputStream fos = new FileOutputStream(pictureFile);
-                            fos.write(data);
-                            fos.close();
-                        } catch (FileNotFoundException e) {
-                            Log.d("ASDF", "File not found: " + e.getMessage());
-                        } catch (IOException e) {
-                            Log.d("ASDF", "Error accessing file: " + e.getMessage());
-                        }
-                        try {
-                            Bitmap bitmap = BitmapFactory.decodeFile(pictureFile.getAbsolutePath());
-
-                            mGlSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-                            mGpuImage.saveToPictures(bitmap, "GPUCamera",
-                                    System.currentTimeMillis() + ".jpg",
-                                    new GPUImage.OnPictureSavedListener() {
-
-                                        @Override
-                                        public void onPictureSaved(final Uri uri) {
-                                            pictureFile.delete();
-                                            mCameraHelper.onPause();
-                                            mCameraHelper.onResume(GpuCameraActivity.this,mGpuImage);
-                                            mCaptureLayout.resetCaptureLayout();
-                                        }
-                                    });
-
-                        } catch (Exception e) {
-                            Log.d("ASDF", "Error decode file: " + e.getMessage());
-                        }
-                    }
-
-                });
-    }
-
-    private void switchFilterTo(final GPUImageFilter filter) {
-        if (mFilter == null
-                || (filter != null && !mFilter.getClass().equals(filter.getClass()))) {
-            mFilter = filter;
-            mGpuImage.setFilter(mFilter);
-            mFilterAdjuster = new GPUImageFilterTools.FilterAdjuster(mFilter);
-        }
-    }
 
     private void initListener() {
 
@@ -206,18 +173,7 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
         mCaptureLayout.setCaptureLisenter(new CaptureListener() {
             @Override
             public void takePictures() {
-                if (mCameraHelper.getCameraInstance().getParameters().getFocusMode().equals(
-                        Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
-                    takePicture();
-                } else {
-                    mCameraHelper.getCameraInstance().autoFocus(new Camera.AutoFocusCallback() {
-
-                        @Override
-                        public void onAutoFocus(final boolean success, final Camera camera) {
-                            takePicture();
-                        }
-                    });
-                }
+                Camera2Helper.getInstance().takePicture();
             }
 
             @Override
@@ -262,15 +218,108 @@ public class GpuCameraActivity extends BaseActivity implements GpuCameraMvpView 
     @Override
     public void onResume() {
         super.onResume();
-        if (DEBUG) {Log.v(TAG, "onResume:");}
-        mCameraHelper.onResume(this,mGpuImage);
+        AppLogger.d( "onResume:");
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestCameraPermission();
+            return;
+        }
+
+        Camera2Helper.getInstance().startBackgroundThread();
+        if(mGlSurfaceView.isAvailable()) {
+            AppLogger.d( "onResume: TextureView is available");
+            Camera2Helper.getInstance().openCamera(mGlSurfaceView.getWidth(),mGlSurfaceView.getHeight());
+        }else {
+            AppLogger.d( "onResume: TextureView is not available");
+            mGlSurfaceView.setSurfaceTextureListener(mSurfaceTextureListener);
+        }
+
     }
 
     @Override
     public void onPause() {
-        if (DEBUG) {Log.v(TAG, "onPause:");}
         super.onPause();
-        mCameraHelper.onPause();
+        AppLogger.d( "onPause:");
+
+        Camera2Helper.getInstance().closeCamera();
+        Camera2Helper.getInstance().stopBackgroundThread();
+
     }
 
+    private void requestCameraPermission() {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+            if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
+                new ConfirmationDialog().show(getSupportFragmentManager(), "Permission Ask");
+            } else {
+                requestPermissions(new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
+            }
+        }
+    }
+
+    /**
+     * {@link TextureView.SurfaceTextureListener} handles several lifecycle events of a
+     * {@link TextureView}.
+     */
+    private final TextureView.SurfaceTextureListener mSurfaceTextureListener
+            = new TextureView.SurfaceTextureListener() {
+
+        @Override
+        public void onSurfaceTextureAvailable(SurfaceTexture texture, int width, int height) {
+            Camera2Helper.getInstance().openCamera(width, height);
+            AppLogger.d("SurfaceTextureListener onSurfaceTextureAvailable width = " + width + ",height = " + height);
+
+        }
+
+        @Override
+        public void onSurfaceTextureSizeChanged(SurfaceTexture texture, int width, int height) {
+            Camera2Helper.getInstance().configureTransform(width, height);
+            AppLogger.d("SurfaceTextureListener onSurfaceTextureSizeChanged width = " + width + ",height = " + height);
+
+        }
+
+        @Override
+        public boolean onSurfaceTextureDestroyed(SurfaceTexture texture) {
+            AppLogger.d("SurfaceTextureListener onSurfaceTextureDestroyed");
+
+            return true;
+        }
+
+        @Override
+        public void onSurfaceTextureUpdated(SurfaceTexture texture) {
+
+
+        }
+
+    };
+
+    /**
+     * Shows OK/Cancel confirmation dialog about camera permission.
+     */
+    public static class ConfirmationDialog extends DialogFragment {
+
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            final Fragment parent = getParentFragment();
+            return new AlertDialog.Builder(getActivity())
+                    .setMessage(R.string.request_permission)
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            parent.requestPermissions(new String[]{Manifest.permission.CAMERA},
+                                    REQUEST_CAMERA_PERMISSION);
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel,
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            })
+                    .create();
+        }
+    }
 }

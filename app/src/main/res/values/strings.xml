@@ -86,6 +86,6 @@
     <string name="retry">Retry</string>
 
     <string name="imageview_content_description"></string>
-
+    <string name="request_permission">This App needs camera permission.</string>
 
 </resources>

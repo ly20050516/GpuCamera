@@ -30,7 +30,7 @@
     android:background="#000000"
     android:orientation="vertical">
 
-    <android.opengl.GLSurfaceView
+    <com.gc.bussiness.gcamera.camera2.AutoFitTextureView
         android:id="@+id/camera_gl_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
